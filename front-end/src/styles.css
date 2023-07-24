@@ -1,0 +1,129 @@
+body {
+    margin: 0;
+    background-color: #1F2833;
+    color: white;
+    margin-top: 2%;
+  }
+
+  .center {
+    align-items: center;
+    text-align: center;
+  }
+
+  .error {
+    color: rgb(247, 97, 97);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 50px;
+  }
+
+  .image {
+    border-radius: 50%;
+    opacity: 0.3;
+  }
+  
+  .heading1 {
+    margin-left: 35%;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 50px;
+    color: white;
+  }
+  
+  .heading2 {
+    font-family: 'Vina Sans', cursive;
+    font-size: 70px;
+    margin-left: 40%;
+    color:#66FCF1
+  }
+  
+  .App {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .auth-form-container, .login-form, .register-form {
+    display: flex;
+    text-align: center;
+    width: 60%;
+    margin-left: 20%;
+    margin-top: 2%;
+    margin-bottom: 2%;
+    flex-direction: column;
+    font-family: 'Orbitron', sans-serif;
+  }
+  
+  @media screen and (min-width: 600px) {
+    .auth-form-container {
+      border: 1px solid white;
+      border-radius: 10px;
+      margin-left: 20%;
+    }
+  }
+  
+  label {
+    text-align: left;
+    padding: 0.25rem 0;
+  }
+  
+  input {
+    margin: 0.5rem 0;
+    padding: 1rem;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Orbitron', sans-serif;
+    outline: none;
+  }
+  
+  .button {
+    display: block;
+    font-size: 25px;
+    color: #fff;
+    background-color: #1F2833;
+    border: 1px solid #66FCF1;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Vina Sans', cursive;
+    margin-top: 1%;
+    margin-left: 40%;
+    text-align: center;
+    text-decoration: none;
+    max-width: 20%;
+  }
+  
+  .button:hover {
+    background-color: #45A29E;
+    color: #66FCF1;
+  }
+  
+  .link-btn {
+    font-family: 'Orbitron', sans-serif;
+    background: none;
+    border: none;
+    color: white;
+    text-decoration: underline;
+    font-size: 15px;
+    cursor: pointer;
+    margin-bottom: 1%;
+  }
+  
+  .link-btn:hover {
+    background: none;
+    color: #66FCF1;
+  }
+
+  .link {
+    text-decoration: none;
+  }
+
+  .none {
+    display: none;
+  }
+
+  .alert {
+    color: rgb(247, 97, 97);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    text-align: center;
+  }
