@@ -26,14 +26,6 @@ func main() {
 	app.database = repository.SqliteDB{DB: conn}
 	defer app.database.Connection().Close()
 
-	//conn, err := openDB()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//app.DB = repository.SqliteDB{DB: conn}
-
-	//defer app.DB.Connection().Close()
-
 	log.Println("Starting application on port", port)
 
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), app.routes())

@@ -11,3 +11,8 @@ type UserData struct {
 	Nickname    string `json:"nickname"`
 	AboutMe     string `json:"about_me"`
 }
+
+type Session struct {
+	Email     string `json:"email"`
+	Cookie    string `json:"cookie"`
+}

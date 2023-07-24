@@ -25,18 +25,21 @@ func (m *SqliteDB) Login(userData *models.UserData) error {
 	return nil
 }
 
+func (m *SqliteDB) EmailFromUserData(userData *models.UserData) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
 
-	/*hash, err := bcrypt.GenerateFromPassword([]byte(userData.Password), bcrypt.DefaultCost)
+	stmt := `SELECT email FROM users WHERE email = ?`
+	row := m.DB.QueryRowContext(ctx, stmt, userData.Email)
+
+	var email string
+	err := row.Scan(&email)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	stmt := `INSERT INTO users (email, password, first_name, last_name, date_of_birth, avatar, nickname, about_me) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+	return email, nil
+}
 
-	_, err = m.DB.ExecContext(ctx, stmt, userData.Email, hash, userData.FirstName, userData.LastName, userData.DateOfBirth, userData.Avatar, userData.Nickname, userData.AboutMe)
-	if err != nil {
-		return err
-	}
 
-	return nil*/
 

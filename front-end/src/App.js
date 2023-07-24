@@ -1,7 +1,9 @@
 import './styles.css';
+import { useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 
 function App() {
+  const [token, setToken] = useState("")
 
   return (
     <div>
@@ -11,7 +13,9 @@ function App() {
           <span className="heading2">Social Network page</span>
         </Link>
       </div>
-      <Outlet />
+      <Outlet context ={{
+        token, setToken, }}
+        />
     </div>
   );
 }

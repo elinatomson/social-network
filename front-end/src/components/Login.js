@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useOutletContext } from "react-router-dom"
 import { displayErrorMessage } from "./ErrorMessage";
 
 function Login () {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    const { setToken } = useOutletContext()
 
     const navigate = useNavigate();
 
@@ -23,25 +25,23 @@ function Login () {
           body: JSON.stringify(userData),
           method: "POST",
           headers: headers,
-        }
+          credentials: "include",
+        };
 
         fetch("http://localhost:8080/login", requestOptions)
-        .then((response) => {
-          if (response.ok) {
-            navigate("/");
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            displayErrorMessage(data.message); 
           } else {
-            return response.json(); 
+            setToken(data.access_token)
+            navigate("/");
           }
         })
-        .then((errorMessage) => {
-          if (errorMessage) {
-            displayErrorMessage(errorMessage.error); 
-          }
+        .catch(error => {
+          displayErrorMessage(`An error occurred while logging in: ${error.message}`);
         })
-        .catch((error) => {
-          displayErrorMessage(`An error occurred while registering: ${error.message}`);
-        });
-    };
+    }
   
 
     return (

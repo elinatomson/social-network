@@ -36,3 +36,16 @@ func (m *SqliteDB) Register(userData *models.UserData) error {
 
 	return nil
 }
+
+func (m *SqliteDB) Session(session *models.Session) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO sessions (email, cookie) VALUES (?, ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, session.Email, session.Cookie)
+	if err != nil {
+		return err
+	}
+	return nil
+}
