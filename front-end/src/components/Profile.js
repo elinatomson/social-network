@@ -1,19 +1,29 @@
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
-function Profile () {
+function Profile() {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  useEffect(() => {
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("sessionId="))
+      ?.split("=")[1];
 
-    const logOut = () => {
-      navigate("/")
+    if (!token) {
+      navigate("/login");
     }
-  
+  }, [navigate]);
 
   return (
     <div>
-      <Link onClick={ logOut } className="button" to="/">Log Out</Link>
+      <h2>Profile Page</h2>
+      {/* Add profile content here */}
+      <Link className="button" to="/logout">
+        Log Out
+      </Link>
     </div>
-  )
+  );
 }
 
-export default Profile
+export default Profile;

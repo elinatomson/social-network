@@ -4,6 +4,8 @@ import (
 	"back-end/models"
 	"context"
 	"golang.org/x/crypto/bcrypt"
+	"errors"
+	"database/sql"
 )
 
 func (m *SqliteDB) Login(userData *models.UserData) error {
@@ -41,5 +43,21 @@ func (m *SqliteDB) EmailFromUserData(userData *models.UserData) (string, error) 
 	return email, nil
 }
 
+func (m *SqliteDB) ValidateSession(cookie string) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
 
+	stmt := `SELECT email FROM sessions WHERE cookie = ?`
+
+	var email int
+	err := m.DB.QueryRowContext(ctx, stmt, cookie).Scan(&email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, errors.New("session not found")
+		}
+		return 0, err
+	}
+
+	return email, nil
+}
 

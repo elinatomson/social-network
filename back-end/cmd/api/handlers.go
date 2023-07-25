@@ -61,6 +61,14 @@ func (app *application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 	_ = app.writeJSON(w, http.StatusOK, userData)
 }
 
+type appError struct {
+    message string
+}
+
+func (e *appError) Error() string {
+    return e.message
+}
+
 func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
@@ -81,8 +89,8 @@ func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = app.database.Login(&userData)
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Email or password is not correct!"), http.StatusInternalServerError)
-		return
+		app.errorJSON(w, &appError{message: "Email or password is not correct!"}, http.StatusUnauthorized)
+        return
 	}
 
 	email, err := app.database.EmailFromUserData(&userData)
@@ -91,9 +99,26 @@ func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.addCookie(w, email)
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+	cookieValue := app.addCookie(w, email)
 
-	app.writeJSON(w, http.StatusOK, userData)
+	app.writeJSON(w, http.StatusOK, map[string]string{"session": cookieValue})
+}
+
+func (app *application) LogOutHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/logout" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	app.deleteCookie(r)
+	w.WriteHeader(http.StatusAccepted)
+}
+
+func (app *application) ProfileHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/profile" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	app.writeJSON(w, http.StatusOK, map[string]string{})
 }

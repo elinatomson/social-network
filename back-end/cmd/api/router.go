@@ -9,6 +9,9 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/", app.HomeHandler)
 	mux.HandleFunc("/register", app.RegisterHandler)
 	mux.HandleFunc("/login", app.LoginHandler)
+	mux.HandleFunc("/logout", app.LogOutHandler)
+
+	mux.Handle("/profile", app.authRequired(http.HandlerFunc(app.ProfileHandler)))
 
 	return handler
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -44,6 +45,19 @@ func (m *SqliteDB) Session(session *models.Session) error {
 	stmt := `INSERT INTO sessions (email, cookie) VALUES (?, ?)`
 
 	_, err := m.DB.ExecContext(ctx, stmt, session.Email, session.Cookie)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *SqliteDB) DeleteSession(uuid string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `DELETE FROM sessions WHERE cookie = ?`
+
+	_, err := m.DB.ExecContext(ctx, stmt, uuid)
 	if err != nil {
 		return err
 	}

@@ -6,6 +6,7 @@ import ErrorPage from './components/ErrorPage'
 import Home from './components/Home'
 import Register  from "./components/Register"
 import Login from "./components/Login"
+import Logout from "./components/Logout"
 import Profile from "./components/Profile"
 
 const router = createBrowserRouter([
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
       {
         path: "/login",
         element: <Login />,
+      },
+      {
+        path: "/logout",
+        element: <Logout />,
       },
       {
         path: "/profile",
