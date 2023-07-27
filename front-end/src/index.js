@@ -8,6 +8,7 @@ import Register  from "./components/Register"
 import Login from "./components/Login"
 import Logout from "./components/Logout"
 import Profile from "./components/Profile"
+import Social from "./components/Social"
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "/profile",
         element: <Profile />,
+      },
+      {
+        path: "/social",
+        element: <Social />,
       },
     ]
   }

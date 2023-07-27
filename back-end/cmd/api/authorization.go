@@ -4,7 +4,6 @@ import (
 	"back-end/models"
 	"errors"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -52,30 +51,14 @@ func (app *application) deleteCookie(r *http.Request) error {
 	return nil
 }
 
-func (app *application) GetTokenFromHeaderAndVerify(w http.ResponseWriter, r *http.Request) (int, error) {
-	w.Header().Add("Vary", "Authorization")
-
-	authHeader := r.Header.Get("Authorization")
-
-	if authHeader == "" {
-		return 0, errors.New("no auth header")
-	}
-
-	headerParts := strings.Split(authHeader, " ")
-	if len(headerParts) != 2 {
-		return 0, errors.New("invalid auth header")
-	}
-
-	if headerParts[0] != "Bearer" {
-		return 0, errors.New("invalid auth header")
-	}
-
-	cookie := headerParts[1]
-
-	email, err := app.database.ValidateSession(cookie)
+func (app *application) GetSessionIDFromCookie(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("sessionId")
 	if err != nil {
-		return 0, err
+		if errors.Is(err, http.ErrNoCookie) {
+			return "", errors.New("session cookie not found")
+		}
+		return "", err
 	}
 
-	return email, nil
+	return cookie.Value, nil
 }

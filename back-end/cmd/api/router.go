@@ -12,6 +12,8 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/logout", app.LogOutHandler)
 
 	mux.Handle("/profile", app.authRequired(http.HandlerFunc(app.ProfileHandler)))
+	mux.Handle("/social", app.authRequired(http.HandlerFunc(app.SocialHandler)))
+	mux.Handle("/search", app.authRequired(http.HandlerFunc(app.SearchHandler)))
 
 	return handler
 }

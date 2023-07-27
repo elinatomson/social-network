@@ -1,16 +1,17 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"os"
+	"sort"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func openDB() (*sql.DB, error) {
-	var err error
 	dbPath := "./database/database.db"
 	exists := true
 
@@ -34,20 +35,39 @@ func openDB() (*sql.DB, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		// Sort the migration files based on their names or version numbers.
+		sort.SliceStable(fileNames, func(i, j int) bool {
+			return fileNames[i].Name() < fileNames[j].Name()
+		})
+
+		tx, err := db.Begin()
+		if err != nil {
+			return nil, err
+		}
+
 		for _, name := range fileNames {
 			fileName := name.Name()
+
 			if !strings.Contains(fileName, ".down") {
 				readFile, err := os.ReadFile(path + fileName)
 				if err != nil {
+					tx.Rollback()
 					return nil, err
 				}
-				_, err = db.Exec(string(readFile))
+
+				_, err = tx.ExecContext(context.Background(), string(readFile))
 				if err != nil {
+					tx.Rollback()
 					return nil, err
 				}
 			}
 		}
 
+		err = tx.Commit()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return db, nil

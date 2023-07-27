@@ -62,11 +62,11 @@ func (app *application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 type appError struct {
-    message string
+	message string
 }
 
 func (e *appError) Error() string {
-    return e.message
+	return e.message
 }
 
 func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +90,7 @@ func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	err = app.database.Login(&userData)
 	if err != nil {
 		app.errorJSON(w, &appError{message: "Email or password is not correct!"}, http.StatusUnauthorized)
-        return
+		return
 	}
 
 	email, err := app.database.EmailFromUserData(&userData)
@@ -120,5 +120,57 @@ func (app *application) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.writeJSON(w, http.StatusOK, map[string]string{})
+	email, err := app.database.EmailFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the email"), http.StatusInternalServerError)
+		return
+	}
+
+	 // Query the database to retrieve the user data based on the his email
+	 userData, err := app.database.GetUserDataByEmail(email)
+	 if err != nil {
+		 app.errorJSON(w, fmt.Errorf("Failed to fetch user data"), http.StatusInternalServerError)
+		 return
+	 }
+ 
+	 _ = app.writeJSON(w, http.StatusOK, userData)
+}
+
+func (app *application) SocialHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/social" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	email, err := app.database.EmailFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the email"), http.StatusInternalServerError)
+		return
+	}
+
+	 // Query the database to retrieve the user data based on the his email
+	 userData, err := app.database.GetUserDataByEmail(email)
+	 if err != nil {
+		 app.errorJSON(w, fmt.Errorf("Failed to fetch user data"), http.StatusInternalServerError)
+		 return
+	 }
+ 
+	 _ = app.writeJSON(w, http.StatusOK, userData)
+}
+
+func (app *application) SearchHandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("query")
+	if query == "" {
+		http.Error(w, "Missing search query", http.StatusBadRequest)
+		return
+	}
+
+	// Perform the search query on the database to retrieve matching users
+	users, err := app.database.SearchUsers(query)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error searching users: %s", err), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, users)
 }

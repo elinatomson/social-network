@@ -1,7 +1,7 @@
 package main
 
 import (
-	"back-end/database/repository"
+	"back-end/database/sqlite"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,7 +12,7 @@ import (
 const port = 8080
 
 type application struct {
-	database repository.SqliteDB
+	database sqlite.SqliteDB
 }
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app.database = repository.SqliteDB{DB: conn}
+	app.database = sqlite.SqliteDB{DB: conn}
 	defer app.database.Connection().Close()
 
 	log.Println("Starting application on port", port)

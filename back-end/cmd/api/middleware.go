@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"fmt"
 	"net/http"
 )
 
@@ -22,17 +22,15 @@ func (app *application) enableCORS(h http.Handler) http.Handler {
 
 func (app *application) authRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		email, err := app.GetTokenFromHeaderAndVerify(w, r)
+		// Get the session ID (cookie value) from the request.
+		_, err := app.GetSessionIDFromCookie(r)
 		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
+			// If the user is not authenticated, redirect to a login page or return an error message.
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			fmt.Printf("User not authorized")
 			return
 		}
 
-		// Create a new context with the email as a string value
-		ctx := context.WithValue(r.Context(), "email", email)
-
-		// Call the next handler with the updated context
-		next.ServeHTTP(w, r.WithContext(ctx))
+		next.ServeHTTP(w, r)
 	})
 }

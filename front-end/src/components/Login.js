@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"
 import { displayErrorMessage } from "./ErrorMessage";
 
@@ -6,17 +6,35 @@ function Login () {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-
     const navigate = useNavigate();
 
+    // Check if the user is already logged in 
+    function getCookie(name) {
+      const cookies = document.cookie.split(';').map(cookie => cookie.trim());
+      for (const cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.split('=');
+        if (cookieName === name) {
+          return cookieValue;
+        }
+      }
+      return '';
+    }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+    useEffect(() => {
+      const sessionId = getCookie("sessionId");
+      if (sessionId) {
+        navigate("/social");
+      }
+    }, [navigate]);
 
-    const userData = {
-      email: email,
-      password: password,
-    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+
+      const userData = {
+        email: email,
+        password: password,
+      };
 
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
@@ -39,7 +57,7 @@ function Login () {
     })
     .then((data) => {
         document.cookie = `sessionId=${data.session}`
-        navigate("/profile");
+        navigate("/social");
     })
     .catch(error => {
         displayErrorMessage(`${error.message}`);
