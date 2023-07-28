@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Avatar from './../images/avatar.PNG';
-import Search from "../components/Search"
+import Search from "../components/Search";
+import CreatePost from "../components/CreatePost"
+import AllPosts from "../components/AllPosts"
+
 
 function Social() {
   const navigate = useNavigate();
@@ -48,9 +51,8 @@ function Social() {
             <Link className="profile-btn" to="/profile">Profile</Link>
           </div>
           <div className="middle-container">
-            <div>
-              (In the middle comes posts)
-            </div>
+            <CreatePost/>
+            <AllPosts />
           </div>
           <div className="right-container">
             <Link className="log-out-button" to="/logout">Log Out</Link>
@@ -59,9 +61,7 @@ function Social() {
               {searchResults !== null && searchResults.length > 0 && (
                 searchResults.map((result) => (
                   <div key={result.user_id} className="search-result-item">
-                    <img className="avatar-img" src={result.avatar ? result.avatar : Avatar} alt="avatar" />
-                    <div>{result.first_name} {result.last_name}</div>
-                    <Link className="link-btn" to={`/user/${result.user_id}`}>View Profile</Link>
+                    <Link className="link-btn" to={`/user/${result.user_id}`} >{result.first_name} {result.last_name}</Link>
                   </div>
                 ))
               )}

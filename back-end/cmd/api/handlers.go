@@ -93,13 +93,13 @@ func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email, err := app.database.EmailFromUserData(&userData)
+	email, firstName, lastName, err := app.database.DataFromUserData(&userData)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error getting email from user data"), http.StatusInternalServerError)
 		return
 	}
 
-	cookieValue := app.addCookie(w, email)
+	cookieValue := app.addCookie(w, email, firstName, lastName)
 
 	app.writeJSON(w, http.StatusOK, map[string]string{"session": cookieValue})
 }
@@ -120,20 +120,20 @@ func (app *application) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email, err := app.database.EmailFromSession(r)
+	email, _, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the email"), http.StatusInternalServerError)
 		return
 	}
 
-	 // Query the database to retrieve the user data based on the his email
-	 userData, err := app.database.GetUserDataByEmail(email)
-	 if err != nil {
-		 app.errorJSON(w, fmt.Errorf("Failed to fetch user data"), http.StatusInternalServerError)
-		 return
-	 }
- 
-	 _ = app.writeJSON(w, http.StatusOK, userData)
+	// Query the database to retrieve the user data based on the his email
+	userData, err := app.database.GetUserDataByEmail(email)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to fetch user data"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, userData)
 }
 
 func (app *application) SocialHandler(w http.ResponseWriter, r *http.Request) {
@@ -142,20 +142,20 @@ func (app *application) SocialHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email, err := app.database.EmailFromSession(r)
+	email, _, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the email"), http.StatusInternalServerError)
 		return
 	}
 
-	 // Query the database to retrieve the user data based on the his email
-	 userData, err := app.database.GetUserDataByEmail(email)
-	 if err != nil {
-		 app.errorJSON(w, fmt.Errorf("Failed to fetch user data"), http.StatusInternalServerError)
-		 return
-	 }
- 
-	 _ = app.writeJSON(w, http.StatusOK, userData)
+	// Query the database to retrieve the user data based on the his email
+	userData, err := app.database.GetUserDataByEmail(email)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to fetch user data"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, userData)
 }
 
 func (app *application) SearchHandler(w http.ResponseWriter, r *http.Request) {
@@ -173,4 +173,88 @@ func (app *application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, users)
+}
+
+func (app *application) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/create-post" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var post models.Post
+	err := app.readJSON(w, r, &post)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	_, firstName, lastName, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
+		return
+	}
+
+	post.FirstName = firstName
+	post.LastName = lastName
+
+	err = app.database.CreatePost(&post)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, post)
+}
+
+func (app *application) AllPostsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/all-posts" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var allPosts []models.Post
+
+	allPosts, err := app.database.AllPosts()
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, allPosts)
+}
+
+func (app *application) UserActivityHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/activity" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	_, firstName, lastName, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the email"), http.StatusInternalServerError)
+		return
+	}
+
+	allPosts, err := app.database.UserPosts(firstName, lastName)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, allPosts)
 }

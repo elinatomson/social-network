@@ -10,6 +10,9 @@ import Logout from "./components/Logout"
 import Profile from "./components/Profile"
 import Social from "./components/Social"
 import Search from "./components/Search"
+import CreatePost from "./components/CreatePost"
+import AllPosts from "./components/AllPosts"
+import UserActivity from "./components/UserActivity.js"
 
 const router = createBrowserRouter([
   {
@@ -35,12 +38,24 @@ const router = createBrowserRouter([
         element: <Profile />,
       },
       {
+        path: "/activity",
+        element: <UserActivity />,
+      },
+      {
         path: "/social",
         element: <Social />,
       },
       {
         path: "/search",
         element: <Search />,
+      },
+      {
+        path: "/create-post",
+        element: <CreatePost />,
+      },
+      {
+        path: "/all-posts",
+        element: <AllPosts />,
       },
     ]
   }

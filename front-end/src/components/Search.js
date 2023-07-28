@@ -28,7 +28,7 @@ function Search({ setSearchResults }) {
 
   return (
     <div>
-      <input type="text" placeholder="Search users..." value={searchTerm} onChange={handleChange} />
+      <input className="search" type="text" placeholder="Search users..." value={searchTerm} onChange={handleChange} />
     </div>
   );
 }

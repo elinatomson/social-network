@@ -9,7 +9,7 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-func (app *application) addCookie(w http.ResponseWriter, email string) string {
+func (app *application) addCookie(w http.ResponseWriter, email string, firstName string, lastName string) string {
 	// Generate a new UUID for a session.
 	uuid, _ := uuid.NewV4()
 	value := uuid.String()
@@ -22,8 +22,10 @@ func (app *application) addCookie(w http.ResponseWriter, email string) string {
 	http.SetCookie(w, &cookie)
 
 	session := &models.Session{
-		Email:  email,
-		Cookie: value,
+		Email:     email,
+		FirstName: firstName,
+		LastName:  lastName,
+		Cookie:    value,
 	}
 
 	app.database.Session(session)

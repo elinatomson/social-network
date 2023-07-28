@@ -4,6 +4,7 @@ import Email from './../images/email.PNG';
 import DOB from './../images/dob.PNG';
 import About from './../images/about.PNG';
 import Avatar from './../images/avatar.PNG';
+import UserActivity from "../components/UserActivity"
 
 function Profile() {
   const navigate = useNavigate();
@@ -55,14 +56,22 @@ function Profile() {
                 Nickname: "{userData.nickname}" About me: "{userData.about_me}"
               </p>
             </div>
+            <div className="container">
+              <div className="left-container1">
+                <Link className="link-btn" to={`/following`}> <div>(nr)</div><div>Following</div></Link>
+              </div>
+              <div className="right-container1">
+                <Link className="link-btn" to={`/followers`}> <div>(nr)</div><div>Followers</div></Link>
+              </div>
+            </div>
           </div>
           <div className="middle-container">
-            <div>
-              (In the middle comes posts)
-            </div>
+            <div className="activity">My activity</div>
+            <UserActivity />
           </div>
           <div className="right-container">
             <Link className="log-out-button" to="/social">Main Page</Link>
+            <Link className="log-out-button">Profile type</Link>
             <Link className="log-out-button" to="/logout">Log Out</Link>
           </div>
         </div>
