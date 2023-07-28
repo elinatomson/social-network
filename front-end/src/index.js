@@ -9,6 +9,7 @@ import Login from "./components/Login"
 import Logout from "./components/Logout"
 import Profile from "./components/Profile"
 import Social from "./components/Social"
+import Search from "./components/Search"
 
 const router = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
       {
         path: "/social",
         element: <Social />,
+      },
+      {
+        path: "/search",
+        element: <Search />,
       },
     ]
   }

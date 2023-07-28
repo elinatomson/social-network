@@ -37,26 +37,35 @@ function Profile() {
   return (
     <div>
       {userData ? (
-        <>
-          <Link className="log-out-button" to="/social">Main Page</Link>
-          <Link className="log-out-button" to="/logout">Log Out</Link>
-          <div className="avatar">
-            <img
-              className="avatar-img"
-              src={userData.avatar ? userData.avatar : Avatar}
-              alt="avatar"
-            />
+        <div className="container">
+          <div className="left-container">
+            <div className="avatar">
+              <img
+                className="avatar-img"
+                src={userData.avatar ? userData.avatar : Avatar}
+                alt="avatar"
+              />
+            </div>
+            <div className="user1">{userData.first_name} {userData.last_name}</div>
+            <div className="user2">
+              <p><img className="dob" src={DOB} alt="dob"></img> {userData.date_of_birth}</p>
+              <p><img className="email" src={Email} alt="email"></img> {userData.email}</p>
+              <p>
+                <img className="about" src={About} alt="about"></img>
+                Nickname: "{userData.nickname}" About me: "{userData.about_me}"
+              </p>
+            </div>
           </div>
-          <div className="user1">{userData.first_name} {userData.last_name}</div>
-          <div className="user2">
-            <p><img className="dob" src={DOB} alt="dob"></img> {userData.date_of_birth}</p>
-            <p><img className="email" src={Email} alt="email"></img> {userData.email}</p>
-            <p>
-              <img className="about" src={About} alt="about"></img>
-              Nickname: "{userData.nickname}" About me: "{userData.about_me}"
-            </p>
+          <div className="middle-container">
+            <div>
+              (In the middle comes posts)
+            </div>
           </div>
-        </>
+          <div className="right-container">
+            <Link className="log-out-button" to="/social">Main Page</Link>
+            <Link className="log-out-button" to="/logout">Log Out</Link>
+          </div>
+        </div>
       ) : (
         <p>Loading user data...</p>
       )}
