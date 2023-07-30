@@ -8,7 +8,7 @@ import Register  from "./components/Register"
 import Login from "./components/Login"
 import Logout from "./components/Logout"
 import Profile from "./components/Profile"
-import Social from "./components/Social"
+import MainPage from "./components/MainPage"
 import Search from "./components/Search"
 import CreatePost from "./components/CreatePost"
 import AllPosts from "./components/AllPosts"
@@ -42,8 +42,8 @@ const router = createBrowserRouter([
         element: <UserActivity />,
       },
       {
-        path: "/social",
-        element: <Social />,
+        path: "/main",
+        element: <MainPage />,
       },
       {
         path: "/search",

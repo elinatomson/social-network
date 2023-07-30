@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function UserActivity() {
   const [userPosts, setUserPosts] = useState([]);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("sessionId="))
+      ?.split("=")[1];
+
+    if (!token) {
+      navigate("/login");
+    } else {
     fetch("/activity")
       .then((response) => response.json())
       .then((data) => {
@@ -12,7 +23,8 @@ function UserActivity() {
       .catch((error) => {
         console.error("Failed to fetch user's posts:", error);
       });
-  }, []);
+    }
+  }, [navigate]);
 
   const sortedPosts = Array.isArray(userPosts)
   ? userPosts.sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -22,7 +34,7 @@ function UserActivity() {
   return (
     <div>
         {sortedPosts.length === 0 ? (
-            <p>No posts found.</p>
+            <p className="nothing">No posts found.</p>
         ) : (
           <ul>
             {userPosts.map((post) => (

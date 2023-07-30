@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { displayErrorMessage } from "./ErrorMessage";
 import { useNavigate } from "react-router-dom"
 
@@ -8,6 +8,17 @@ function CreatePost() {
   const [imageOrGif, setImageOrGif] = useState(null);
 
   const navigate = useNavigate();
+
+  const token = document.cookie
+  .split("; ")
+  .find((row) => row.startsWith("sessionId="))
+  ?.split("=")[1];
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/login");
+    }
+  }, [token, navigate]);
 
   const handleContentChange = (e) => {
     setPostContent(e.target.value);
@@ -24,17 +35,16 @@ function CreatePost() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle the form submission here (e.g., API call to create the post)
-    // You can access the postContent, postPrivacy, and imageOrGif states to send the data to the server
-    // Reset the form after successful submission
+    
     const postData = {
     content: postContent,
     privacy: postPrivacy,
     image: imageOrGif,
-    }
+    };
 
-    const headers = new Headers()
-    headers.append("Content-Type", "application/json")
+    const headers = new Headers();
+    headers.append("Content-Type", "application/json");
+    headers.append("Authorization", token);
 
     let requestOptions = {
       body: JSON.stringify(postData),
@@ -48,7 +58,7 @@ function CreatePost() {
           setPostContent("");
           setPostPrivacy("public");
           setImageOrGif(null);
-          navigate("/social")
+          navigate("/main")
         } else {
           return response.json(); 
         }
@@ -59,7 +69,7 @@ function CreatePost() {
         }
       })
       .catch((error) => {
-        displayErrorMessage(`An error occurred while posting: ${error.message}`);
+        displayErrorMessage(`${error.message}`);
       });
   };
 

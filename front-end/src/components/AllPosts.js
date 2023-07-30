@@ -1,18 +1,34 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
+import { displayErrorMessage } from "./ErrorMessage";
 
 function AllPosts() {
   const [allPosts, setAllPosts] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("/all-posts")
+    const token = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("sessionId="))
+    ?.split("=")[1];
+
+  if (!token) {
+    navigate("/login");
+  } else {
+    fetch("/all-posts", {
+      headers: {
+        Authorization: `${token}`,
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         setAllPosts(data);
       })
       .catch((error) => {
-        console.error("Error fetching all posts:", error);
+        displayErrorMessage(`${error.message}`);
       });
-  }, []);
+    }
+  }, [navigate]);
 
   const sortedPosts = Array.isArray(allPosts)
   ? allPosts.sort((a, b) => new Date(b.date) - new Date(a.date))

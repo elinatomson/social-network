@@ -8,24 +8,16 @@ function Login () {
 
     const navigate = useNavigate();
 
-    // Check if the user is already logged in 
-    function getCookie(name) {
-      const cookies = document.cookie.split(';').map(cookie => cookie.trim());
-      for (const cookie of cookies) {
-        const [cookieName, cookieValue] = cookie.split('=');
-        if (cookieName === name) {
-          return cookieValue;
-        }
-      }
-      return '';
-    }
+    const token = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("sessionId="))
+    ?.split("=")[1];
 
     useEffect(() => {
-      const sessionId = getCookie("sessionId");
-      if (sessionId) {
-        navigate("/social");
+      if (token) {
+        navigate("/main");
       }
-    }, [navigate]);
+    }, [token, navigate]);
 
 
     const handleSubmit = (e) => {
@@ -38,6 +30,7 @@ function Login () {
 
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
+    headers.append("Authorization", token);
 
     let requestOptions = {
       body: JSON.stringify(userData),
@@ -57,7 +50,7 @@ function Login () {
     })
     .then((data) => {
         document.cookie = `sessionId=${data.session}`
-        navigate("/social");
+        navigate("/main");
     })
     .catch(error => {
         displayErrorMessage(`${error.message}`);

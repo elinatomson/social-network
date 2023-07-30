@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { displayErrorMessage } from "./ErrorMessage";
 import Email from './../images/email.PNG';
 import DOB from './../images/dob.PNG';
 import About from './../images/about.PNG';
@@ -19,7 +20,6 @@ function Profile() {
     if (!token) {
       navigate("/login");
     } else {
-      // Fetch user data from the backend API.
       fetch("/profile", {
         headers: {
           Authorization: `${token}`,
@@ -30,7 +30,7 @@ function Profile() {
           setUserData(data);
         })
         .catch((error) => {
-          console.error("Failed to fetch user data:", error);
+          displayErrorMessage(`${error.message}`);
         });
     }
   }, [navigate]);
@@ -70,7 +70,7 @@ function Profile() {
             <UserActivity />
           </div>
           <div className="right-container">
-            <Link className="log-out-button" to="/social">Main Page</Link>
+            <Link className="log-out-button" to="/main">Main Page</Link>
             <Link className="log-out-button">Profile type</Link>
             <Link className="log-out-button" to="/logout">Log Out</Link>
           </div>

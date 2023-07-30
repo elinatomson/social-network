@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Avatar from './../images/avatar.PNG';
-import Search from "../components/Search";
-import CreatePost from "../components/CreatePost"
-import AllPosts from "../components/AllPosts"
+import Search from "./Search";
+import CreatePost from "./CreatePost"
+import AllPosts from "./AllPosts"
 
 
-function Social() {
+function MainPage() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
@@ -20,7 +20,7 @@ function Social() {
     if (!token) {
       navigate("/login");
     } else {
-      fetch("/social", {
+      fetch("/main", {
         headers: {
           Authorization: `${token}`,
         },
@@ -78,4 +78,4 @@ function Social() {
   );
 }
 
-export default Social
+export default MainPage

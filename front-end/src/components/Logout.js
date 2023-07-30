@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import { displayErrorMessage } from "./ErrorMessage";
 
 function Logout() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ function Logout() {
 
     fetch("/logout", requestOptions)
       .catch(error => {
-        console.log("error logging out", error);
+        displayErrorMessage(`${error.message}`);
       })
       .finally(() => {
         // Remove the "session" cookie by setting its expiration to the past

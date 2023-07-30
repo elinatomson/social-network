@@ -12,7 +12,7 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/logout", app.LogOutHandler)
 
 	mux.Handle("/profile", app.authRequired(http.HandlerFunc(app.ProfileHandler)))
-	mux.Handle("/social", app.authRequired(http.HandlerFunc(app.SocialHandler)))
+	mux.Handle("/main", app.authRequired(http.HandlerFunc(app.MainPageHandler)))
 	mux.Handle("/search", app.authRequired(http.HandlerFunc(app.SearchHandler)))
 	mux.Handle("/create-post", app.authRequired(http.HandlerFunc(app.CreatePostHandler)))
 	mux.Handle("/all-posts", app.authRequired(http.HandlerFunc(app.AllPostsHandler)))

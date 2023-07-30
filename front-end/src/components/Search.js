@@ -1,7 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { displayErrorMessage } from "./ErrorMessage";
+import { useNavigate } from "react-router-dom"
 
 function Search({ setSearchResults }) {
   const [searchTerm, setSearchTerm] = useState('');
+
+  const navigate = useNavigate();
+
+  const token = document.cookie
+  .split("; ")
+  .find((row) => row.startsWith("sessionId="))
+  ?.split("=")[1];
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/login");
+    }
+  }, [token, navigate]);
 
   const handleSearch = (query) => {
     if (query === '') {
@@ -12,10 +27,10 @@ function Search({ setSearchResults }) {
     fetch(`/search?query=${query}`)
       .then((response) => response.json())
       .then((data) => {
-        setSearchResults(data.length > 0 ? data : []);
+        setSearchResults(data !== null ? data : []);
       })
-      .catch((error) => {
-        console.error("Failed to perform search:", error);
+      .catch(error => {
+        displayErrorMessage(`${error.message}`);
         setSearchResults([]);
       });
   };

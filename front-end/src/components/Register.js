@@ -56,7 +56,7 @@ function Register () {
         }
       })
       .catch((error) => {
-        displayErrorMessage(`An error occurred while registering: ${error.message}`);
+        displayErrorMessage(`${error.message}`);
       });
   };
 

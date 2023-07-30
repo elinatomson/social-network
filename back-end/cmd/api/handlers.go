@@ -136,8 +136,8 @@ func (app *application) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	_ = app.writeJSON(w, http.StatusOK, userData)
 }
 
-func (app *application) SocialHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/social" {
+func (app *application) MainPageHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/main" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return
 	}
