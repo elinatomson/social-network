@@ -10,6 +10,7 @@ import Logout from "./components/Logout"
 import Profile from "./components/Profile"
 import MainPage from "./components/MainPage"
 import Search from "./components/Search"
+import User from "./components/User"
 import CreatePost from "./components/CreatePost"
 import AllPosts from "./components/AllPosts"
 import UserActivity from "./components/UserActivity.js"
@@ -48,6 +49,10 @@ const router = createBrowserRouter([
       {
         path: "/search",
         element: <Search />,
+      },
+      {
+        path: "/user/:userId",
+        element: <User />,
       },
       {
         path: "/create-post",

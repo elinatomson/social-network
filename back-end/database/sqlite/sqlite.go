@@ -168,6 +168,27 @@ func (m *SqliteDB) SearchUsers(query string) ([]models.UserData, error) {
 	return users, nil
 }
 
+func (m *SqliteDB) GetUser(id int) (*models.UserData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT user_id, email, first_name, last_name, date_of_birth, avatar, nickname, about_me FROM users WHERE user_id = $1`
+
+	row := m.DB.QueryRowContext(ctx, stmt, id)
+
+	var user models.UserData
+
+	err := row.Scan(
+		&user.UserID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth, &user.Avatar, &user.Nickname, &user.AboutMe,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (m *SqliteDB) CreatePost(post *models.Post) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

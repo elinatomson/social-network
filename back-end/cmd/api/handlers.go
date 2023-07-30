@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"back-end/models"
 )
@@ -159,6 +161,11 @@ func (app *application) MainPageHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) SearchHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/search" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
 	query := r.URL.Query().Get("query")
 	if query == "" {
 		http.Error(w, "Missing search query", http.StatusBadRequest)
@@ -173,6 +180,23 @@ func (app *application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, users)
+}
+
+func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/user/")
+	id1, err := strconv.Atoi(id)
+
+	user, err := app.database.GetUser(id1)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, user)
 }
 
 func (app *application) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
