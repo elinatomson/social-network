@@ -95,13 +95,13 @@ func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email, firstName, lastName, err := app.database.DataFromUserData(&userData)
+	userId, email, firstName, lastName, err := app.database.DataFromUserData(&userData)
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Error getting email from user data"), http.StatusInternalServerError)
+		app.errorJSON(w, fmt.Errorf("Error getting data from user data"), http.StatusInternalServerError)
 		return
 	}
 
-	cookieValue := app.addCookie(w, email, firstName, lastName)
+	cookieValue := app.addCookie(w, userId, email, firstName, lastName)
 
 	app.writeJSON(w, http.StatusOK, map[string]string{"session": cookieValue})
 }
@@ -122,7 +122,7 @@ func (app *application) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email, _, _, err := app.database.DataFromSession(r)
+	_, email, firstName, lastName, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the email"), http.StatusInternalServerError)
 		return
@@ -135,7 +135,35 @@ func (app *application) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = app.writeJSON(w, http.StatusOK, userData)
+	allPosts, err := app.database.ProfilePosts(firstName, lastName)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+
+	for i := range allPosts {
+		postID := allPosts[i].PostID
+		comments, err := app.database.GetCommentsByPostID(postID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error getting comments from the database"), http.StatusInternalServerError)
+			return
+		}
+		if comments == nil {
+			comments = []models.Comment{}
+		}
+
+		allPosts[i].Comments = comments
+	}
+
+	userDataWithPosts := struct {
+		UserData *models.UserData `json:"user_data"`
+		Posts    []models.Post    `json:"posts"`
+	}{
+		UserData: userData,
+		Posts:    allPosts,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, userDataWithPosts)
 }
 
 func (app *application) MainPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -144,7 +172,7 @@ func (app *application) MainPageHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	email, _, _, err := app.database.DataFromSession(r)
+	_, email, _, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the email"), http.StatusInternalServerError)
 		return
@@ -196,7 +224,35 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = app.writeJSON(w, http.StatusOK, user)
+	allPosts, err := app.database.GetPostsByUserID(user.UserID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	for i := range allPosts {
+		postID := allPosts[i].PostID
+		comments, err := app.database.GetCommentsByPostID(postID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error getting comments from the database"), http.StatusInternalServerError)
+			return
+		}
+		if comments == nil {
+			comments = []models.Comment{}
+		}
+
+		allPosts[i].Comments = comments
+	}
+
+	userDataWithPosts := struct {
+		UserData *models.UserData `json:"user_data"`
+		Posts    []models.Post    `json:"posts"`
+	}{
+		UserData: user,
+		Posts:    allPosts,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, userDataWithPosts)
 }
 
 func (app *application) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
@@ -217,12 +273,13 @@ func (app *application) CreatePostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	_, firstName, lastName, err := app.database.DataFromSession(r)
+	userId, _, firstName, lastName, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
 		return
 	}
 
+	post.UserID = userId
 	post.FirstName = firstName
 	post.LastName = lastName
 
@@ -231,6 +288,8 @@ func (app *application) CreatePostHandler(w http.ResponseWriter, r *http.Request
 		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
 		return
 	}
+	// Include an empty comments array for the newly created post.
+	post.Comments = make([]models.Comment, 0)
 
 	_ = app.writeJSON(w, http.StatusOK, post)
 }
@@ -254,31 +313,57 @@ func (app *application) AllPostsHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Fetch comments for each post and add them to the posts
+	for i := range allPosts {
+		postID := allPosts[i].PostID
+		comments, err := app.database.GetCommentsByPostID(postID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error getting comments from the database"), http.StatusInternalServerError)
+			return
+		}
+		if comments == nil {
+			comments = []models.Comment{}
+		}
+
+		allPosts[i].Comments = comments
+	}
+
 	_ = app.writeJSON(w, http.StatusOK, allPosts)
 }
 
-func (app *application) UserActivityHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+func (app *application) CommentHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
 		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
 		return
 	}
 
-	if r.URL.Path != "/activity" {
+	if r.URL.Path != "/create-comment" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return
 	}
 
-	_, firstName, lastName, err := app.database.DataFromSession(r)
+	var comment models.Comment
+	err := app.readJSON(w, r, &comment)
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Failed to get the email"), http.StatusInternalServerError)
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
 		return
 	}
 
-	allPosts, err := app.database.UserPosts(firstName, lastName)
+	userId, _, firstName, lastName, err := app.database.DataFromSession(r)
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
 		return
 	}
 
-	_ = app.writeJSON(w, http.StatusOK, allPosts)
+	comment.UserID = userId
+	comment.FirstName = firstName
+	comment.LastName = lastName
+
+	err = app.database.CreateComment(&comment)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, comment)
 }

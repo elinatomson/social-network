@@ -12,8 +12,8 @@ import MainPage from "./components/MainPage"
 import Search from "./components/Search"
 import User from "./components/User"
 import CreatePost from "./components/CreatePost"
+import CreateComment from "./components/CreateComment"
 import AllPosts from "./components/AllPosts"
-import UserActivity from "./components/UserActivity.js"
 
 const router = createBrowserRouter([
   {
@@ -39,10 +39,6 @@ const router = createBrowserRouter([
         element: <Profile />,
       },
       {
-        path: "/activity",
-        element: <UserActivity />,
-      },
-      {
         path: "/main",
         element: <MainPage />,
       },
@@ -57,6 +53,10 @@ const router = createBrowserRouter([
       {
         path: "/create-post",
         element: <CreatePost />,
+      },
+      {
+        path: "/create-comment",
+        element: <CreateComment />,
       },
       {
         path: "/all-posts",

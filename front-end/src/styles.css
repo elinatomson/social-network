@@ -129,10 +129,26 @@ body {
     text-align: center;
     text-decoration: none;
     max-width: 40%;
+  }
 
+  .comment-button {
+    display: block;
+    font-size: 20px;
+    color: #fff;
+    background-color: rgb(206, 205, 205);
+    border: 1px solid #66FCF1;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Vina Sans', cursive;
+    margin-left: 35%;
+    margin-top: 0%;
+    padding-bottom: 2px;
+    text-align: center;
+    text-decoration: none;
+    max-width: 30%;
   }
   
-  .button:hover, .log-out-button:hover, .custom-file-input:hover {
+  .button:hover, .log-out-button:hover, .custom-file-input:hover, .comment-button:hover {
     background-color: #45A29E;
     color: #66FCF1;
   }
@@ -265,11 +281,13 @@ body {
   .content {
     width: 90%;
     outline:none;
+    margin-left: 2%;
   }
 
   .posting{
     border: 1px solid white;
     padding: 1%;
+    padding-right: 2%;
     border-radius: 20px;
     width: 80%;
     padding-bottom: 2%;
@@ -277,7 +295,7 @@ body {
     overflow: auto;
   }
 
-  .post{
+  .posts{
     border: 1px solid white;
     border-radius: 20px;
     width: 76%;
@@ -286,13 +304,19 @@ body {
     overflow: auto;
     background-color: rgb(206, 205, 205);
     color: #1F2833;
+    text-align: left;
+    padding: 1%;
+  }
+
+  .post{
+    text-align: center;
   }
 
   .poster{
     font-weight: bold;
     text-align: left;
-    margin-left: 3%;
     margin-bottom: 0%;
+    font-size: 13px;
   }
 
   .post-date{
@@ -313,10 +337,19 @@ body {
   .insert{
     margin-top: 0%;
     padding-top: 0%;
+    margin-bottom: 0%;
   }
 
   .nothing{
     text-align: left;
-    margin-left: 32%;
+    margin-left: 35%;
   }
   
+  .comment {
+    background-color: white;
+    width: 90%;
+    border-radius: 6px;
+    margin-bottom: 1%;
+    text-align: left;
+    padding: 1%;
+  }

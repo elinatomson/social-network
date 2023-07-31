@@ -59,29 +59,30 @@ func (m *SqliteDB) Login(userData *models.UserData) error {
 	return nil
 }
 
-func (m *SqliteDB) DataFromUserData(userData *models.UserData) (string, string, string, error) {
+func (m *SqliteDB) DataFromUserData(userData *models.UserData) (int, string, string, string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT email, first_name, last_name FROM users WHERE email = ?`
+	stmt := `SELECT user_id, email, first_name, last_name FROM users WHERE email = ?`
 	row := m.DB.QueryRowContext(ctx, stmt, userData.Email)
 
+	var userId int
 	var email, firstName, lastName string
-	err := row.Scan(&email, &firstName, &lastName)
+	err := row.Scan(&userId, &email, &firstName, &lastName)
 	if err != nil {
-		return "", "", "", err
+		return 0, "", "", "", err
 	}
 
-	return email, firstName, lastName, nil
+	return userId, email, firstName, lastName, nil
 }
 
 func (m *SqliteDB) Session(session *models.Session) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `INSERT INTO sessions (email, first_name, last_name, cookie) VALUES (?, ?, ?, ?)`
+	stmt := `INSERT INTO sessions (user_id, email, first_name, last_name, cookie) VALUES (?, ?, ?, ?, ?)`
 
-	_, err := m.DB.ExecContext(ctx, stmt, session.Email, session.FirstName, session.LastName, session.Cookie)
+	_, err := m.DB.ExecContext(ctx, stmt, session.UserID, session.Email, session.FirstName, session.LastName, session.Cookie)
 	if err != nil {
 		return err
 	}
@@ -101,28 +102,29 @@ func (m *SqliteDB) DeleteSession(uuid string) error {
 	return nil
 }
 
-func (m *SqliteDB) DataFromSession(r *http.Request) (string, string, string, error) {
+func (m *SqliteDB) DataFromSession(r *http.Request) (int, string, string, string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	cookie, err := r.Cookie("sessionId")
 	if err != nil {
-		return "", "", "", err
+		return 0, "", "", "", err
 	}
 
 	uuid, err := uuid.FromString(cookie.Value)
 	if err != nil {
-		return "", "", "", err
+		return 0, "", "", "", err
 	}
 
-	stmt := `SELECT email, first_name, last_name FROM sessions WHERE cookie = ?`
+	stmt := `SELECT user_id, email, first_name, last_name FROM sessions WHERE cookie = ?`
 	row := m.DB.QueryRowContext(ctx, stmt, uuid.String())
+	var userId int
 	var email, firstName, lastName string
-	err = row.Scan(&email, &firstName, &lastName)
+	err = row.Scan(&userId, &email, &firstName, &lastName)
 	if err != nil {
-		return "", "", "", err
+		return 0, "", "", "", err
 	}
-	return email, firstName, lastName, nil
+	return userId, email, firstName, lastName, nil
 }
 
 func (m *SqliteDB) GetUserDataByEmail(email string) (*models.UserData, error) {
@@ -195,9 +197,9 @@ func (m *SqliteDB) CreatePost(post *models.Post) error {
 
 	post.Date = time.Now()
 
-	stmt := `INSERT INTO posts (content, first_name, last_name, privacy, image, date) VALUES (?, ?, ?, ?, ?, ?)`
+	stmt := `INSERT INTO posts (user_id, content, first_name, last_name, privacy, image, date) VALUES (?, ?, ?, ?, ?, ?, ?)`
 
-	_, err := m.DB.ExecContext(ctx, stmt, post.Content, post.FirstName, post.LastName, post.Privacy, post.Image, post.Date)
+	_, err := m.DB.ExecContext(ctx, stmt, post.UserID, post.Content, post.FirstName, post.LastName, post.Privacy, post.Image, post.Date)
 	if err != nil {
 		return err
 	}
@@ -209,7 +211,7 @@ func (m *SqliteDB) AllPosts() ([]models.Post, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT post_id, content, first_name, last_name, image, date FROM posts`
+	stmt := `SELECT post_id, user_id, content, first_name, last_name, image, date FROM posts`
 
 	rows, err := m.DB.QueryContext(ctx, stmt)
 	if err != nil {
@@ -219,7 +221,7 @@ func (m *SqliteDB) AllPosts() ([]models.Post, error) {
 	var posts []models.Post
 	for rows.Next() {
 		var post models.Post
-		err := rows.Scan(&post.PostID, &post.Content, &post.FirstName, &post.LastName, &post.Image, &post.Date)
+		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Image, &post.Date)
 		if err != nil {
 			return nil, err
 		}
@@ -228,7 +230,7 @@ func (m *SqliteDB) AllPosts() ([]models.Post, error) {
 	return posts, nil
 }
 
-func (m *SqliteDB) UserPosts(firstName string, lastName string) ([]models.Post, error) {
+func (m *SqliteDB) ProfilePosts(firstName string, lastName string) ([]models.Post, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
@@ -249,4 +251,69 @@ func (m *SqliteDB) UserPosts(firstName string, lastName string) ([]models.Post, 
 		posts = append(posts, post)
 	}
 	return posts, nil
+}
+
+func (m *SqliteDB) GetPostsByUserID(userID int) ([]models.Post, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT post_id, user_id, content, first_name, last_name, privacy, image, date FROM posts WHERE user_id = ?`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var posts []models.Post
+	for rows.Next() {
+		var post models.Post
+		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Privacy, &post.Image, &post.Date)
+		if err != nil {
+			return nil, err
+		}
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+}
+
+func (m *SqliteDB) CreateComment(comment *models.Comment) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	comment.Date = time.Now()
+
+	stmt := `INSERT INTO comments (post_id, user_id, comment, first_name, last_name, image, date) VALUES (?, ?, ?, ?, ?, ?, ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, comment.PostID, comment.UserID, comment.Comment, comment.FirstName, comment.LastName, comment.Image, comment.Date)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) GetCommentsByPostID(postID int) ([]models.Comment, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT comment_id, user_id, comment, first_name, last_name, image, date FROM comments WHERE post_id = ?`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, postID)
+	if err != nil {
+		return nil, err
+	}
+
+	var comments []models.Comment
+
+	for rows.Next() {
+		var comment models.Comment
+		err := rows.Scan(&comment.CommentID, &comment.UserID, &comment.Comment, &comment.FirstName, &comment.LastName, &comment.Image, &comment.Date)
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, comment)
+	}
+
+	return comments, nil
 }

@@ -95,6 +95,7 @@ function CreatePost() {
             <button className="button" type="submit">Create Post</button>
         </div>
       </form>
+      <div id="error"></div>
     </div>
   );
 }
