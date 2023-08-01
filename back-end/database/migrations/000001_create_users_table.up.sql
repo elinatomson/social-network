@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS `users`(
 	`date_of_birth` TEXT NOT NULL,
 	`avatar` 		TEXT,
 	`nickname` 		TEXT,
-	`about_me` 		TEXT
+	`about_me` 		TEXT,
+	`public` 		BOOLEAN DEFAULT TRUE
 );

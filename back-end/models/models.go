@@ -12,6 +12,7 @@ type UserData struct {
 	Avatar      string `json:"avatar"`
 	Nickname    string `json:"nickname"`
 	AboutMe     string `json:"about_me"`
+	Public      bool   `json:"public"`
 }
 
 type Post struct {

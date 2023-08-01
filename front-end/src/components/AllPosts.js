@@ -34,6 +34,7 @@ function AllPosts() {
   const sortedPosts = Array.isArray(allPosts)
   ? allPosts.sort((a, b) => new Date(b.date) - new Date(a.date))
   : [];
+
   
   return (
     <div>
@@ -50,7 +51,7 @@ function AllPosts() {
               <p className="post">{post.content}</p>
               {post.image && <img src={post.image} alt="PostImage" />}
               <div className="comments">
-                {post.comments.length === 0 ? (
+                {post.comments === null ? (
                   <p>No comments</p>
                 ) : (
                   <ul>

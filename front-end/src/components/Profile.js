@@ -10,6 +10,7 @@ import CreateComment from "./CreateComment";
 function Profile() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({});
+  const [profileType, setProfileType] = useState('');
 
   useEffect(() => {
     const token = document.cookie
@@ -28,6 +29,16 @@ function Profile() {
         .then((response) => response.json())
         .then((data) => {
           setUserData(data);
+          console.log(data)
+          // Read the current profile type from localStorage if available for the current user
+          const storedProfileType = localStorage.getItem(`profileType_${data.user_data.email}`); // Use user email as the key
+          // Set the initial profile type based on localStorage or user data
+          const initialProfileType = storedProfileType || (data.user_data.public ? 'Set your profile as public' : 'Set your profile as private');
+          setProfileType(initialProfileType);
+          // If the profile type was not in localStorage, then store the initial value in localStorage for the current user
+          if (!storedProfileType) {
+            localStorage.setItem(`profileType_${data.user_data.email}`, initialProfileType); // Use user email as the key
+          }
         })
         .catch((error) => {
           displayErrorMessage(`${error.message}`);
@@ -38,6 +49,38 @@ function Profile() {
   const sortedPosts = Array.isArray(userData.posts)
   ? userData.posts.sort((a, b) => new Date(b.date) - new Date(a.date))
   : [];
+
+  const handleProfileTypeToggle = () => {
+    const token = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("sessionId="))
+    ?.split("=")[1];
+
+    if (!token) {
+      navigate("/login");
+    } else {
+      fetch("/profile-type", {
+        method: "POST",
+        headers: {
+          Authorization: `${token}`,
+        },
+      })
+      .then((response) => {
+        if (response.ok) {
+          // Update the profileType only when the button is clicked
+          const newProfileType = profileType === "Set your profile as private" ? "Set your profile as public" : "Set your profile as private";
+          setProfileType(newProfileType);
+          // Update the profileType in localStorage for the current user
+          localStorage.setItem(`profileType_${userData.user_data.email}`, newProfileType); // Use user email as the key
+        } else {
+          throw new Error("Failed to update profile type");
+        }
+      })
+      .catch((error) => {
+        displayErrorMessage(`${error.message}`);
+      });
+    };
+  }
 
   return (
     <div>
@@ -59,6 +102,7 @@ function Profile() {
                 <img className="about" src={About} alt="about"></img>
                 Nickname: "{userData.user_data.nickname}" About me: "{userData.user_data.about_me}"
               </p>
+              <button className="profile-type-button" onClick={handleProfileTypeToggle}>{profileType}</button>
             </div>
             <div className="container">
               <div className="left-container1">
@@ -84,7 +128,7 @@ function Profile() {
               <p className="post">{post.content}</p>
               {post.image && <img src={post.image} alt="PostImage" />}
               <div className="comments">
-                {post.comments.length === 0 ? (
+                {post.comments === null ? (
                   <p>No comments</p>
                 ) : (
                   <ul>
@@ -108,7 +152,6 @@ function Profile() {
           </div>
           <div className="right-container">
             <Link className="log-out-button" to="/main">Main Page</Link>
-            <Link className="log-out-button">Profile type</Link>
             <Link className="log-out-button" to="/logout">Log Out</Link>
           </div>
         </div>

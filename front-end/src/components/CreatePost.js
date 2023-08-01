@@ -78,7 +78,7 @@ function CreatePost() {
       <form onSubmit={handleSubmit}>
         <input className="content" placeholder="Post something..." value={postContent} onChange={handleContentChange} required></input>
         <div className="container1">
-            <div className="left-container1">
+            <div className="left-container2">
                 <label htmlFor="privacy"></label>
                 <select className="privacy" name="privacy" value={postPrivacy} onChange={handlePrivacyChange} required>
                     <option value="public">Public</option>

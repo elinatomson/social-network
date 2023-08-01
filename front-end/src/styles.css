@@ -147,8 +147,24 @@ body {
     text-decoration: none;
     max-width: 30%;
   }
+
+  .profile-type-button {
+    display: block;
+    font-size: 25px;
+    color: #fff;
+    background-color: #1F2833;
+    border: 1px solid #66FCF1;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Vina Sans', cursive;
+    margin-top: 1px;
+    padding-bottom: 2px;
+    text-align: center;
+    text-decoration: none;
+    width: 100%;
+  }
   
-  .button:hover, .log-out-button:hover, .custom-file-input:hover, .comment-button:hover {
+  .button:hover, .log-out-button:hover, .custom-file-input:hover, .comment-button:hover, .profile-type-button:hover {
     background-color: #45A29E;
     color: #66FCF1;
   }
@@ -173,7 +189,7 @@ body {
     font-size: 15px;
     cursor: pointer;
     margin-bottom: 1%;
-    margin-left: 2%;
+    margin-left: 40%;
   }
   
   .link-btn:hover, .profile-btn:hover {
@@ -197,32 +213,32 @@ body {
   }
 
   .user1 {
-    margin-left: 2%;
     font-family: 'Orbitron', sans-serif;
     font-size: 25px;
     color: white;
+    margin-left: 40%;
   }
 
   .user2 {
     font-family: 'Orbitron', sans-serif;
-    margin-left: 2%;
+    margin-left: 40%;
   }
 
-  .avatar {
-    margin-left: 2%;
+  .avatar{
+    margin-left: 40%;
   }
 
   .email, .dob {
-    width: 5%;
+    width: 10%;
     border-radius: 20px;
   }
 
   .about {
-    width: 5%;
+    width: 10%;
   }
 
   .avatar-img {
-    width: 30%;
+    width: 40%;
     border-radius: 90px;
   }
 
@@ -237,7 +253,6 @@ body {
   .container {
     display: flex;
     justify-content: space-between;
-    margin-left: 10%;
     margin-top: 2%;
   }
 
@@ -266,6 +281,11 @@ body {
 
   .left-container1 {
     flex: 1;
+    margin-left: 40%;
+  }
+
+  .left-container2 {
+    flex: 1;
   }
 
   .right-container1 {
@@ -274,8 +294,7 @@ body {
 
   .activity {
     font-size: 35px;
-    text-align: left;
-    margin-left: 27%;
+    text-align: center
   }
 
   .content {
@@ -292,6 +311,7 @@ body {
     width: 80%;
     padding-bottom: 2%;
     margin-bottom: 2%;
+    margin-left: 12%;
     overflow: auto;
   }
 
@@ -301,6 +321,7 @@ body {
     width: 76%;
     padding-bottom: 1%;
     margin-bottom: 2%;
+    margin-left: 13%;
     overflow: auto;
     background-color: rgb(206, 205, 205);
     color: #1F2833;

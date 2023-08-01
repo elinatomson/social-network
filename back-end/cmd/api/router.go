@@ -12,6 +12,7 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/logout", app.LogOutHandler)
 
 	mux.Handle("/profile", app.authRequired(http.HandlerFunc(app.ProfileHandler)))
+	mux.Handle("/profile-type", app.authRequired(http.HandlerFunc(app.ProfileTypeHandler)))
 	mux.Handle("/main", app.authRequired(http.HandlerFunc(app.MainPageHandler)))
 	mux.Handle("/search", app.authRequired(http.HandlerFunc(app.SearchHandler)))
 	mux.Handle("/user/", app.authRequired(http.HandlerFunc(app.UserHandler)))

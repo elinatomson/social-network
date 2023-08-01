@@ -148,9 +148,6 @@ func (app *application) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 			app.errorJSON(w, fmt.Errorf("Error getting comments from the database"), http.StatusInternalServerError)
 			return
 		}
-		if comments == nil {
-			comments = []models.Comment{}
-		}
 
 		allPosts[i].Comments = comments
 	}
@@ -237,9 +234,6 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 			app.errorJSON(w, fmt.Errorf("Error getting comments from the database"), http.StatusInternalServerError)
 			return
 		}
-		if comments == nil {
-			comments = []models.Comment{}
-		}
 
 		allPosts[i].Comments = comments
 	}
@@ -321,9 +315,6 @@ func (app *application) AllPostsHandler(w http.ResponseWriter, r *http.Request) 
 			app.errorJSON(w, fmt.Errorf("Error getting comments from the database"), http.StatusInternalServerError)
 			return
 		}
-		if comments == nil {
-			comments = []models.Comment{}
-		}
 
 		allPosts[i].Comments = comments
 	}
@@ -366,4 +357,30 @@ func (app *application) CommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, comment)
+}
+
+func (app *application) ProfileTypeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/profile-type" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	userId, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	err = app.database.UpdateProfileType(userId)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to update the profile type"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, map[string]string{"message": "Profile type updated successfully"})
 }

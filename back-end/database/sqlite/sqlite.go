@@ -174,14 +174,14 @@ func (m *SqliteDB) GetUser(id int) (*models.UserData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT user_id, email, first_name, last_name, date_of_birth, avatar, nickname, about_me FROM users WHERE user_id = $1`
+	stmt := `SELECT user_id, email, first_name, last_name, date_of_birth, avatar, nickname, about_me, public FROM users WHERE user_id = $1`
 
 	row := m.DB.QueryRowContext(ctx, stmt, id)
 
 	var user models.UserData
 
 	err := row.Scan(
-		&user.UserID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth, &user.Avatar, &user.Nickname, &user.AboutMe,
+		&user.UserID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth, &user.Avatar, &user.Nickname, &user.AboutMe, &user.Public,
 	)
 
 	if err != nil {
@@ -316,4 +316,17 @@ func (m *SqliteDB) GetCommentsByPostID(postID int) ([]models.Comment, error) {
 	}
 
 	return comments, nil
+}
+
+func (m *SqliteDB) UpdateProfileType(userID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `UPDATE users SET public = NOT public WHERE user_id = ?`
+	_, err := m.DB.ExecContext(ctx, stmt, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
