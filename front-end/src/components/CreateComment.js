@@ -79,7 +79,7 @@ function CreateComment({ postID }) {
     <div>
       <form onSubmit={handleSubmit}>
         <input className="content" placeholder="Comment..." value={commentContent} onChange={handleContentChange} onFocus={() => setIsCommentFocused(true)}
-          onBlur={handleBlur} />
+          onBlur={handleBlur} required/>
             {isCommentFocused && (
                 <>
                     <label htmlFor="image"></label>

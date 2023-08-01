@@ -11,15 +11,13 @@ import CreateComment from "./CreateComment";
 function User() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({});
-
   const { userId } = useParams();
+  const token = document.cookie
+  .split("; ")
+  .find((row) => row.startsWith("sessionId="))
+  ?.split("=")[1];
 
   useEffect(() => {
-    const token = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("sessionId="))
-      ?.split("=")[1];
-
     if (!token) {
       navigate("/login");
     } else {
@@ -28,15 +26,54 @@ function User() {
           Authorization: `${token}`,
         },
       })
-        .then((response) => response.json())
-        .then((data) => {
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.message);
+          })
+        } else {
+          return response.json();
+        }
+      })
+      .then((data) => {
           setUserData(data);
-        })
-        .catch((error) => {
-          displayErrorMessage(`${error.message}`);
-        });
+      })
+      .catch((error) => {
+          displayErrorMessage(`An error occured while displaying user: ${error.message}`);
+      });
     }
-  }, [navigate, userId]);
+  }, [navigate, userId, token]);
+
+  const handleFollowUnfollow = () => {
+      const followData = {
+        following_id: parseInt(userId), 
+        request_pending: !userData.user_data.public,
+      };
+
+      const headers = new Headers();
+      headers.append("Content-Type", "application/json");
+      headers.append("Authorization", token);
+  
+      let requestOptions = {
+        body: JSON.stringify(followData),
+        method: "POST",
+        headers: headers,
+      }
+
+      fetch('/follow', requestOptions)
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.message);
+          })
+        } else {
+          return response.json();
+        }
+      })
+      .catch((error) => {
+        displayErrorMessage(`An error occured while trying to follow this user: ${error.message}`);
+      });
+  };
 
   const sortedPosts = Array.isArray(userData.posts)
   ? userData.posts.sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -44,6 +81,7 @@ function User() {
 
   return (
     <div>
+      <div id="error" className="alert"></div>
       {userData.user_data ? (
         <div className="container">
           <div className="left-container">
@@ -60,16 +98,16 @@ function User() {
             {userData.user_data.public ? (
               <div className="user2">
                 <p>
-                  <img className="dob" src={DOB} alt="dob"></img>{" "}
+                  <img className="dob" src={DOB} alt="dob" />
                   {userData.user_data.date_of_birth}
                 </p>
                 <p>
-                  <img className="email" src={Email} alt="email"></img>{" "}
+                  <img className="email" src={Email} alt="email" />
                   {userData.user_data.email}
                 </p>
                 <p>
-                  <img className="about" src={About} alt="about"></img>
-                  Nickname: "{userData.user_data.nickname}" About me: "
+                  <img className="about" src={About} alt="about" />
+                  Nickname: "{userData.user_data.nickname}" About the user: "
                   {userData.user_data.about_me}"
                 </p>
               </div>
@@ -91,61 +129,62 @@ function User() {
               </div>
             </div>
           </div>
-          {userData.user_data.public ? (
-            <div className="middle-container">
-              <Link className="profile-type-button">Follow/unfollow</Link>
-              <div className="activity">User activity</div>
-              {sortedPosts.length === 0 ? (
-                <p className="nothing">No posts found.</p>
-              ) : (
-                <ul>
-                  {sortedPosts.map((post) => (
-                    <div className="posts" key={post.post_id}>
-                      <div>
-                        <span className="poster">
-                          {post.first_name} {post.last_name}
-                        </span>
-                        <span className="post-date">
-                          {new Date(post.date).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="post">{post.content}</p>
-                      {post.image && (
-                        <img src={post.image} alt="PostImage" />
-                      )}
-                      <div className="comments">
-                        {post.comments === null ? (
-                          <p>No comments</p>
-                        ) : (
-                          <ul>
-                            {post.comments.map((comment) => (
-                              <div class="comment" key={comment.comment_id}>
-                                <div>
-                                  <span className="poster">
-                                    {comment.first_name} {comment.last_name}
-                                  </span>
-                                  <span className="post-date">
-                                    {new Date(comment.date).toLocaleString()}
-                                  </span>
-                                </div>
-                                {comment.comment}
-                              </div>
-                            ))}
-                          </ul>
+          <div className="middle-container">
+            <button className="profile-type-button" onClick={handleFollowUnfollow}>
+              Follow
+            </button>
+            {userData.user_data.public ? (
+              <>
+                <div className="activity">User activity</div>
+                {sortedPosts.length === 0 ? (
+                  <p className="nothing">No posts found.</p>
+                ) : (
+                  <ul>
+                    {sortedPosts.map((post) => (
+                      <div className="posts" key={post.post_id}>
+                        <div>
+                          <span className="poster">
+                            {post.first_name} {post.last_name}
+                          </span>
+                          <span className="post-date">
+                            {new Date(post.date).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="post">{post.content}</p>
+                        {post.image && (
+                          <img src={post.image} alt="PostImage" />
                         )}
+                        <div className="comments">
+                          {post.comments === null ? (
+                            <p>No comments</p>
+                          ) : (
+                            <ul>
+                              {post.comments.map((comment) => (
+                                <div class="comment" key={comment.comment_id}>
+                                  <div>
+                                    <span className="poster">
+                                      {comment.first_name} {comment.last_name}
+                                    </span>
+                                    <span className="post-date">
+                                      {new Date(comment.date).toLocaleString()}
+                                    </span>
+                                  </div>
+                                  {comment.comment}
+                                </div>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                        <CreateComment postID={post.post_id} />
                       </div>
-                      <CreateComment postID={post.post_id} />
-                    </div>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ) : (
-            <div className="middle-container">
-              <Link className="profile-type-button">Follow/unfollow</Link>
+                    ))}
+                  </ul>
+                )}
+              </>
+            ) : (
               <p>This user's profile is private.</p>
-            </div>
-          )}
+            )}
+          </div>
           <div className="right-container">
             <Link className="log-out-button" to="/main">
               Main Page
@@ -160,6 +199,6 @@ function User() {
       )}
     </div>
   );
-}
+};  
 
 export default User;

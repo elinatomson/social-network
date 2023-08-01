@@ -29,7 +29,6 @@ function Profile() {
         .then((response) => response.json())
         .then((data) => {
           setUserData(data);
-          console.log(data)
           // Read the current profile type from localStorage if available for the current user
           const storedProfileType = localStorage.getItem(`profileType_${data.user_data.email}`); // Use user email as the key
           // Set the initial profile type based on localStorage or user data

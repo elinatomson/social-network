@@ -11,6 +11,7 @@ function Register () {
     const [avatar, setAvatar] = useState("");
     const [nickname, setNickname] = useState("");
     const [aboutMe, setAboutMe] = useState("");
+    const [errors, setErrors] =useState([])
     const navigate = useNavigate()
 
     const handleSubmit = async (e) => {
@@ -19,6 +20,28 @@ function Register () {
       var passwordLength = password.length >= 5 && password.length <= 50;
       if (!passwordLength) {
         displayErrorMessage('Password has to be 5 letters long!');
+        return;
+      }
+
+      let errors = []
+      let required = [
+        { field: email, name: "email"},
+        { field: password, name: "password"},
+        { field: firstName, name: "first_name"},
+        { field: lastName, name: "last_name"},
+        { field: dateOfBirth, name: "date_of_birth"},
+      ]
+
+      required.forEach(function (obj) {
+        if (obj.field === "") {
+          errors.push(obj.name);
+        }
+      })
+
+      setErrors(errors)
+
+      if (errors.length > 0) {
+        displayErrorMessage("Please fill in all required fields.");
         return;
       }
 
@@ -66,22 +89,37 @@ function Register () {
         <h3>Password has to be 5 letters long!</h3>
         <form className="register-form" onSubmit={handleSubmit}>
             <label htmlFor="email">Email*</label>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="youremail@gmail.com" id="email" name="email" required/>
+            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="youremail@gmail.com" id="email" name="email" />
+              {errors.includes("email") && (
+                <p className="alert">Please fill in the email.</p>
+              )}
             <label htmlFor="password">Password*</label>
-            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="********" id="password" name="password" required/>
+            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="********" id="password" name="password" />
+              {errors.includes("password") && (
+                <p className="aler">Please fill in the password.</p>
+              )}
             <label htmlFor="firstName">First Name*</label>
-            <input value={firstName} onChange={(e) => setFirstName(e.target.value)} type="text" placeholder="John" id="firstName" name="first_name" required/>
+            <input value={firstName} onChange={(e) => setFirstName(e.target.value)} type="text" placeholder="John" id="firstName" name="first_name" />
+              {errors.includes("first_name") && (
+                <p className="alert">Please fill in the first name.</p>
+              )}
             <label htmlFor="lastName">Last Name*</label>
-            <input value={lastName} onChange={(e) => setLastName(e.target.value)} type="text" placeholder="Doe" id="lastName" name="last_name" required/>
+            <input value={lastName} onChange={(e) => setLastName(e.target.value)} type="text" placeholder="Doe" id="lastName" name="last_name" />
+              {errors.includes("last_name") && (
+                <p className="alert">Please fill in the last name.</p>
+              )}
             <label htmlFor="dateOfBirth">Date of Birth*</label>
-            <input value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} type="date" id="dateOfBirth" name="date_of_birth" required/>
+            <input value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} type="date" id="dateOfBirth" name="date_of_birth" />
+              {errors.includes("date_of_birth") && (
+                <p className="alert">Please select a date of birth.</p>
+              )}
             <label htmlFor="avatar">Avatar/Image (Optional)</label>
             <input value={avatar} onChange={(e) => setAvatar(e.target.value)} type="url" placeholder="https://example.com/avatar.jpg" id="avatar" name="avatar" />
             <label htmlFor="nickname">Nickname (Optional)</label>
             <input value={nickname} onChange={(e) => setNickname(e.target.value)} type="text" placeholder="Nickname" id="nickname" name="nickname"/>
             <label htmlFor="aboutMe">About Me (Optional)</label>
             <input value={aboutMe} onChange={(e) => setAboutMe(e.target.value)} placeholder="Something about yourself..." id="about_me" name="aboutMe"/>
-            <div id="error" class="alert"></div>
+            <div id="error" className="alert"></div>
             <button className="button" type="submit">Register</button>
             <Link className="button" to="/" type="submit">Cancel</Link>
         </form>

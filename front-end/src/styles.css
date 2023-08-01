@@ -3,6 +3,7 @@ body {
     background-color: #1F2833;
     color: white;
     margin-top: 2%;
+    height: 100%;
   }
 
   .center {
@@ -189,7 +190,7 @@ body {
     font-size: 15px;
     cursor: pointer;
     margin-bottom: 1%;
-    margin-left: 40%;
+    margin-left: 30%;
   }
   
   .link-btn:hover, .profile-btn:hover {
@@ -198,7 +199,7 @@ body {
   }
 
   .link {
-    text-decoration: none;
+    color: white;
   }
 
   .none {
@@ -216,16 +217,16 @@ body {
     font-family: 'Orbitron', sans-serif;
     font-size: 25px;
     color: white;
-    margin-left: 40%;
+    margin-left: 30%;
   }
 
   .user2 {
     font-family: 'Orbitron', sans-serif;
-    margin-left: 40%;
+    margin-left: 30%;
   }
 
   .avatar{
-    margin-left: 40%;
+    margin-left: 30%;
   }
 
   .email, .dob {
@@ -259,6 +260,7 @@ body {
   .left-container {
     flex: 2;
     padding: 10px;
+    margin-right: 5%;
   }
 
   .middle-container {
@@ -281,7 +283,7 @@ body {
 
   .left-container1 {
     flex: 1;
-    margin-left: 40%;
+    margin-left: 30%;
   }
 
   .left-container2 {
@@ -321,7 +323,7 @@ body {
     width: 76%;
     padding-bottom: 1%;
     margin-bottom: 2%;
-    margin-left: 13%;
+    margin-left: 12%;
     overflow: auto;
     background-color: rgb(206, 205, 205);
     color: #1F2833;
@@ -362,15 +364,32 @@ body {
   }
 
   .nothing{
-    text-align: left;
-    margin-left: 35%;
+    text-align: center;
   }
   
   .comment {
     background-color: white;
     width: 90%;
-    border-radius: 6px;
+    border-radius: 10px;
     margin-bottom: 1%;
     text-align: left;
     padding: 1%;
+  }
+
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .content {
+    flex: 1;
+  }
+
+  .footer {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    color: white;
+    text-align: center;
+    padding: 20px;
   }

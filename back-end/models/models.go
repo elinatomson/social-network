@@ -45,3 +45,13 @@ type Session struct {
 	LastName  string `json:"last_name"`
 	Cookie    string `json:"cookie"`
 }
+
+type FollowRequest struct {
+	FollowingID    int  `json:"following_id"`
+	FollowerID    int  `json:"follower_id"`
+	RequestPending *bool   `json:"request_pending,omitempty"`
+}
+
+type FollowResponse struct {
+	Following bool `json:"following"`
+}

@@ -6,6 +6,7 @@ function CreatePost() {
   const [postContent, setPostContent] = useState("");
   const [postPrivacy, setPostPrivacy] = useState("public");
   const [imageOrGif, setImageOrGif] = useState(null);
+  const [errors, setErrors] =useState([])
 
   const navigate = useNavigate();
 
@@ -35,6 +36,23 @@ function CreatePost() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    let errors = []
+      let required = [
+        { field: postContent, name: "content"},
+    ]
+
+    required.forEach(function (obj) {
+      if (obj.field === "") {
+        errors.push(obj.name);
+      }
+    })
+
+    setErrors(errors)
+
+    if (errors.length > 0) {
+      return;
+    }
     
     const postData = {
     content: postContent,
@@ -76,7 +94,10 @@ function CreatePost() {
   return (
     <div className="posting">
       <form onSubmit={handleSubmit}>
-        <input className="content" placeholder="Post something..." value={postContent} onChange={handleContentChange} required></input>
+        <input className="content" placeholder="Post something..." value={postContent} onChange={handleContentChange} name="content"></input>
+        {errors.includes("content") && (
+          <p className="alert">Please fill in the input field.</p>
+        )}
         <div className="container1">
             <div className="left-container2">
                 <label htmlFor="privacy"></label>

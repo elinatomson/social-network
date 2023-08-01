@@ -5,6 +5,7 @@ import { displayErrorMessage } from "./ErrorMessage";
 function Login () {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [errors, setErrors] =useState([])
 
     const navigate = useNavigate();
 
@@ -23,6 +24,24 @@ function Login () {
     const handleSubmit = (e) => {
       e.preventDefault();
 
+      let errors = []
+      let required = [
+        { field: email, name: "email"},
+        { field: password, name: "password"},
+      ]
+
+      required.forEach(function (obj) {
+        if (obj.field === "") {
+          errors.push(obj.name);
+        }
+      })
+
+      setErrors(errors)
+
+      if (errors.length > 0) {
+        return;
+      }
+
       const userData = {
         email: email,
         password: password,
@@ -38,7 +57,7 @@ function Login () {
       headers: headers,
     };
 
-    fetch("http://localhost:8080/login", requestOptions)
+    fetch("/login", requestOptions)
     .then((response) => {
       if (!response.ok) {
         return response.json().then((data) => {
@@ -62,10 +81,16 @@ function Login () {
             <h2>Login</h2>
             <form className="login-form" onSubmit={handleSubmit}>
                 <label htmlFor="email">email</label>
-                <input value={email} onChange={(e) => setEmail(e.target.value)}type="email" placeholder="youremail@gmail.com" id="email" name="email" required/>
+                <input value={email} onChange={(e) => setEmail(e.target.value)}type="email" placeholder="youremail@gmail.com" id="email" name="email"/>
+                  {errors.includes("email") && (
+                    <p className="alert">Please fill in the email.</p>
+                  )}
                 <label htmlFor="password">password</label>
-                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="********" id="password" name="password" required/>
-                <div id="error" class="alert"></div>
+                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="********" id="password" name="password"/>
+                  {errors.includes("password") && (
+                    <p className="alert">Please fill in the password.</p>
+                  )}
+                <div id="error" className="alert"></div>
                 <button className="button" type="submit">Log In</button>
                 <Link className="button" to="/" type="submit">Cancel</Link>
             </form>

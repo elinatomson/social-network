@@ -330,3 +330,60 @@ func (m *SqliteDB) UpdateProfileType(userID int) error {
 
 	return nil
 }
+
+func (m *SqliteDB) FollowUser(followerID, followingID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO followers (follower_id, following_id, request_pending) VALUES (?, ?, 0)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, followerID, followingID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) FollowNotPublicUser(followerID, followingID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO followers (follower_id, following_id, request_pending) VALUES (?, ?, 1)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, followerID, followingID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) UnfollowUser(followerID, followingID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `DELETE FROM followers WHERE follower_id = ? AND following_id = ?`
+
+	_, err := m.DB.ExecContext(ctx, stmt, followerID, followingID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *SqliteDB) IsUserPublic(userID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT public FROM users WHERE user_id = ?`
+
+	var isPublic bool
+	row := m.DB.QueryRowContext(ctx, stmt, userID)
+	err := row.Scan(&isPublic)
+	if err != nil {
+		return false, err
+	}
+
+	return isPublic, nil
+}

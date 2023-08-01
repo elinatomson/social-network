@@ -384,3 +384,50 @@ func (app *application) ProfileTypeHandler(w http.ResponseWriter, r *http.Reques
 
 	_ = app.writeJSON(w, http.StatusOK, map[string]string{"message": "Profile type updated successfully"})
 }
+
+func (app *application) FollowHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/follow" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var request models.FollowRequest
+	err := app.readJSON(w, r, &request)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	userId, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	isPublic, err := app.database.IsUserPublic(request.FollowingID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get user's public status"), http.StatusInternalServerError)
+		return
+	}
+
+	if isPublic {
+		err = app.database.FollowUser(userId, request.FollowingID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to follow user: %w", err), http.StatusInternalServerError)
+			return
+		}
+		_ = app.writeJSON(w, http.StatusOK, request)
+	} else {
+		err = app.database.FollowNotPublicUser(userId, request.FollowingID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to follow user: %w", err), http.StatusInternalServerError)
+			return
+		}
+		_ = app.writeJSON(w, http.StatusOK, request)
+	}
+}

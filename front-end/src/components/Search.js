@@ -18,7 +18,7 @@ function Search({ setSearchResults }) {
     }
   }, [token, navigate]);
 
-  const handleSearch = (query) => {
+  const performSearch = (query) => {
     if (query === '') {
       setSearchResults(null); 
       return;
@@ -35,10 +35,10 @@ function Search({ setSearchResults }) {
       });
   };
 
-  const handleChange = (e) => {
-    const searchTerm = e.target.value;
-    setSearchTerm(searchTerm);
-    handleSearch(searchTerm);
+  const handleChange = (event) => {
+    const value = event.target.value;
+    setSearchTerm(value);
+    performSearch(value);
   };
 
   return (
