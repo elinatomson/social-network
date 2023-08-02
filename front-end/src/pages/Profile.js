@@ -10,6 +10,7 @@ import Avatar from './../images/avatar.PNG';
 import CreateComment from "../components/CreateComment";
 import Following from "../components/Following";
 import Followers from "../components/Followers";
+import FollowRequests from "../components/FollowRequests";
 
 function Profile() {
   const navigate = useNavigate();
@@ -104,6 +105,7 @@ function Profile() {
                     Nickname: "{userData.user_data.nickname}" About me: "{userData.user_data.about_me}"
                   </p>
                   <button className="profile-type-button" onClick={handleProfileTypeToggle}>{profileType}</button>
+                  <FollowRequests />
                 </div>
                 <div className="container">
                   <div className="left-container1">

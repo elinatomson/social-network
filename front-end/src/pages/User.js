@@ -74,6 +74,9 @@ function User() {
           return response.json();
         }
       })
+      .then((data) => {
+        console.log(data)
+      })
       .catch((error) => {
         displayErrorMessage(`An error occured while trying to follow this user: ${error.message}`);
       });

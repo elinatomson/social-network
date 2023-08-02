@@ -191,6 +191,28 @@ func (m *SqliteDB) GetUser(id int) (*models.UserData, error) {
 	return &user, nil
 }
 
+func (m *SqliteDB) GetUserByID(userID int) (*models.UserData, error) {
+    ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+    defer cancel()
+
+    stmt := `SELECT user_id, first_name, last_name FROM users WHERE user_id = $1`
+
+    row := m.DB.QueryRowContext(ctx, stmt, userID)
+
+    var user models.UserData
+
+    err := row.Scan(
+        &user.UserID, &user.FirstName, &user.LastName,
+    )
+
+	if err != nil {
+		return nil, err
+	}
+
+    return &user, nil
+}
+
+
 func (m *SqliteDB) CreatePost(post *models.Post) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -346,19 +368,19 @@ func (m *SqliteDB) FollowUser(followerID, followingID int) error {
 }
 
 func (m *SqliteDB) IsFollowing(userID, followingID int) (bool, error) {
-    ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
 
-    stmt := `SELECT EXISTS ( SELECT 1 FROM followers WHERE follower_id = $1 AND following_id = $2)`
+	stmt := `SELECT EXISTS ( SELECT 1 FROM followers WHERE follower_id = $1 AND following_id = $2)`
 
-    var isFollowing bool
-    row := m.DB.QueryRowContext(ctx, stmt, userID, followingID)
+	var isFollowing bool
+	row := m.DB.QueryRowContext(ctx, stmt, userID, followingID)
 	err := row.Scan(&isFollowing)
-    if err != nil {
-        return false, err
-    }
+	if err != nil {
+		return false, err
+	}
 
-    return isFollowing, nil
+	return isFollowing, nil
 }
 
 func (m *SqliteDB) FollowNotPublicUser(followerID, followingID int) error {
@@ -462,4 +484,41 @@ func (m *SqliteDB) Followers(userID int) ([]models.UserData, error) {
 	return followers, nil
 }
 
+func (m *SqliteDB) FollowRequests(userID int) ([]models.FollowRequest, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
 
+	stmt := `SELECT follower_id, request_pending FROM followers WHERE following_id = ? AND request_pending = true`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var followRequests []models.FollowRequest
+
+	for rows.Next() {
+		var followRequest models.FollowRequest
+		err := rows.Scan(&followRequest.FollowingID, &followRequest.RequestPending)
+		if err != nil {
+			return nil, err
+		}
+		followRequests = append(followRequests, followRequest)
+	}
+
+	return followRequests, nil
+}
+
+func (m *SqliteDB) ApproveFollower(userID, followingID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `UPDATE followers SET request_pending = false WHERE (user_id = ? AND following_id = ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, userID, followingID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

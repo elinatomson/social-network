@@ -482,7 +482,6 @@ func (app *application) FollowersHandler(w http.ResponseWriter, r *http.Request)
 		app.errorJSON(w, fmt.Errorf("Failed to get the list of followed users: %w", err), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(followers)
 	response := struct {
 		Followers []models.UserData `json:"followers_users"`
 	}{
@@ -491,3 +490,70 @@ func (app *application) FollowersHandler(w http.ResponseWriter, r *http.Request)
 
 	_ = app.writeJSON(w, http.StatusOK, response)
 }
+
+func (app *application) FollowRequestsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/follow-requests" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	followRequests, err := app.database.FollowRequests(userID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get follow requests"), http.StatusInternalServerError)
+		return
+	}
+
+	var usersData []*models.UserData
+	for _, request := range followRequests {
+		user, err := app.database.GetUserByID(request.FollowingID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to get user data for follower ID: %d", request.FollowerID), http.StatusInternalServerError)
+			return
+		}
+		usersData = append(usersData, user)
+	}
+
+    _ = app.writeJSON(w, http.StatusOK, usersData)
+}
+
+func (app *application) AcceptFollowerHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/accept-follower" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	var request models.FollowRequest
+	err = app.readJSON(w, r, &request)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	err = app.database.ApproveFollower(userID, request.FollowingID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to update follower status"), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string{"message": "Follower request accepted successfully"}
+	_ = app.writeJSON(w, http.StatusOK, response)
+}
+
+
