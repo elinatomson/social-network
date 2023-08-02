@@ -41,7 +41,7 @@ function AllPosts() {
       {sortedPosts.length === 0 ? (
         <p>No posts found.</p>
       ) : (
-        <ul>
+        <div>
           {sortedPosts.map((post) => (
             <div className="posts" key={post.post_id}>
               <div>
@@ -52,25 +52,27 @@ function AllPosts() {
               {post.image && <img src={post.image} alt="PostImage" />}
               <div className="comments">
                 {post.comments === null ? (
-                  <p>No comments</p>
+                  <p className="comment-text">No comments</p>
                 ) : (
-                  <ul>
+                  <div>
                     {post.comments.map((comment) => (
-                      <div class="comment" key={comment.comment_id}>
+                      <div className="comment" key={comment.comment_id}>
                         <div>
                           <span className="poster">{comment.first_name} {comment.last_name}</span>
                           <span className="post-date">{new Date(comment.date).toLocaleString()}</span>
                         </div>
-                        {comment.comment}
+                        <div className="comment-text">
+                          {comment.comment}
+                        </div>
                       </div>
                     ))}
-                  </ul>
+                  </div>
                 )}
               </div>
               <CreateComment postID={post.post_id}/>
             </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

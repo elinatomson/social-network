@@ -386,11 +386,6 @@ func (app *application) ProfileTypeHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) FollowHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
-		return
-	}
-
 	if r.URL.Path != "/follow" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return
@@ -415,19 +410,84 @@ func (app *application) FollowHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if isPublic {
+	isFollowing, err := app.database.IsFollowing(userId, request.FollowingID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to check if user is following"), http.StatusInternalServerError)
+		return
+	}
+
+	if isFollowing {
+		err = app.database.UnfollowUser(userId, request.FollowingID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to unfollow user: %w", err), http.StatusInternalServerError)
+			return
+		}
+	} else if isPublic {
 		err = app.database.FollowUser(userId, request.FollowingID)
 		if err != nil {
 			app.errorJSON(w, fmt.Errorf("Failed to follow user: %w", err), http.StatusInternalServerError)
 			return
 		}
-		_ = app.writeJSON(w, http.StatusOK, request)
 	} else {
 		err = app.database.FollowNotPublicUser(userId, request.FollowingID)
 		if err != nil {
 			app.errorJSON(w, fmt.Errorf("Failed to follow user: %w", err), http.StatusInternalServerError)
 			return
 		}
-		_ = app.writeJSON(w, http.StatusOK, request)
 	}
+	_ = app.writeJSON(w, http.StatusOK, request)
+}
+
+func (app *application) FollowingHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/following" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	userId, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	following, err := app.database.Following(userId)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the list of followed users: %w", err), http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		Following []models.UserData `json:"following_users"`
+	}{
+		Following: following,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, response)
+}
+
+func (app *application) FollowersHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/followers" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	userId, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	followers, err := app.database.Followers(userId)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the list of followed users: %w", err), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println(followers)
+	response := struct {
+		Followers []models.UserData `json:"followers_users"`
+	}{
+		Followers: followers,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, response)
 }

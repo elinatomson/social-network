@@ -214,9 +214,9 @@ body {
   }
 
   .user1 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 25px;
-    color: white;
+    font-family: 'Vina Sans', cursive;
+    font-size: 40px;
+    color: #66FCF1;
     margin-left: 30%;
   }
 
@@ -296,7 +296,9 @@ body {
 
   .activity {
     font-size: 35px;
-    text-align: center
+    text-align: center;
+    margin-bottom: 2%;
+    margin-top: 2%;
   }
 
   .content {
@@ -310,20 +312,20 @@ body {
     padding: 1%;
     padding-right: 2%;
     border-radius: 20px;
-    width: 80%;
+    width: 85%;
     padding-bottom: 2%;
     margin-bottom: 2%;
-    margin-left: 12%;
+    margin-left: 7%;
     overflow: auto;
   }
 
   .posts{
     border: 1px solid white;
     border-radius: 20px;
-    width: 76%;
+    width: 80%;
     padding-bottom: 1%;
     margin-bottom: 2%;
-    margin-left: 12%;
+    margin-left: 10%;
     overflow: auto;
     background-color: rgb(206, 205, 205);
     color: #1F2833;
@@ -340,6 +342,7 @@ body {
     text-align: left;
     margin-bottom: 0%;
     font-size: 13px;
+    margin-left: 2%;
   }
 
   .post-date{
@@ -369,11 +372,16 @@ body {
   
   .comment {
     background-color: white;
-    width: 90%;
+    width: 86%;
     border-radius: 10px;
     margin-bottom: 1%;
+    margin-left: 6%;
     text-align: left;
     padding: 1%;
+  }
+
+  .comment-text{
+    margin-left: 2%;
   }
 
   .app-container {
@@ -392,4 +400,17 @@ body {
     color: white;
     text-align: center;
     padding: 20px;
+  }
+
+  .following{
+    font-family: 'Vina Sans', cursive;
+    margin-top: 10%;
+    font-size: 30px;
+    color:#66FCF1
+  }
+
+  .user{
+    font-family: 'Orbitron', sans-serif;
+    text-align: left;
+    margin-top: 0%;
   }

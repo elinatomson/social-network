@@ -52,6 +52,3 @@ type FollowRequest struct {
 	RequestPending *bool   `json:"request_pending,omitempty"`
 }
 
-type FollowResponse struct {
-	Following bool `json:"following"`
-}

@@ -345,6 +345,22 @@ func (m *SqliteDB) FollowUser(followerID, followingID int) error {
 	return nil
 }
 
+func (m *SqliteDB) IsFollowing(userID, followingID int) (bool, error) {
+    ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+    defer cancel()
+
+    stmt := `SELECT EXISTS ( SELECT 1 FROM followers WHERE follower_id = $1 AND following_id = $2)`
+
+    var isFollowing bool
+    row := m.DB.QueryRowContext(ctx, stmt, userID, followingID)
+	err := row.Scan(&isFollowing)
+    if err != nil {
+        return false, err
+    }
+
+    return isFollowing, nil
+}
+
 func (m *SqliteDB) FollowNotPublicUser(followerID, followingID int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -387,3 +403,63 @@ func (m *SqliteDB) IsUserPublic(userID int) (bool, error) {
 
 	return isPublic, nil
 }
+
+func (m *SqliteDB) Following(userID int) ([]models.UserData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `
+		SELECT user_id, first_name, last_name FROM users
+		JOIN followers ON user_id = following_id
+		WHERE follower_id = $1 AND request_pending = false
+	`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var following []models.UserData
+
+	for rows.Next() {
+		var user models.UserData
+		err := rows.Scan(&user.UserID, &user.FirstName, &user.LastName)
+		if err != nil {
+			return nil, err
+		}
+		following = append(following, user)
+	}
+
+	return following, nil
+}
+
+func (m *SqliteDB) Followers(userID int) ([]models.UserData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `
+		SELECT user_id, first_name, last_name FROM users
+		JOIN followers ON user_id = follower_id
+		WHERE following_id = $1 AND request_pending = false
+	`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var followers []models.UserData
+
+	for rows.Next() {
+		var user models.UserData
+		err := rows.Scan(&user.UserID, &user.FirstName, &user.LastName)
+		if err != nil {
+			return nil, err
+		}
+		followers = append(followers, user)
+	}
+
+	return followers, nil
+}
+
+

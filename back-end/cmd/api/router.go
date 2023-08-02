@@ -20,6 +20,8 @@ func (app *application) routes() http.Handler {
 	mux.Handle("/all-posts", app.authRequired(http.HandlerFunc(app.AllPostsHandler)))
 	mux.Handle("/create-comment", app.authRequired(http.HandlerFunc(app.CommentHandler)))
 	mux.Handle("/follow", app.authRequired(http.HandlerFunc(app.FollowHandler)))
+	mux.Handle("/following", app.authRequired(http.HandlerFunc(app.FollowingHandler)))
+	mux.Handle("/followers", app.authRequired(http.HandlerFunc(app.FollowersHandler)))
 
 	return handler
 }

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"
-import { displayErrorMessage } from "./ErrorMessage";
+import { displayErrorMessage } from "../components/ErrorMessage";
+import Header from '../components/Header';
+import Footer from "../components/Footer";
 
 function Login () {
     const [email, setEmail] = useState('');
@@ -76,7 +78,10 @@ function Login () {
     });
   };
 
-    return (
+  return (
+    <div className="app-container">
+      <div className="content">
+        <Header />
         <div className="auth-form-container">
             <h2>Login</h2>
             <form className="login-form" onSubmit={handleSubmit}>
@@ -98,7 +103,10 @@ function Login () {
                 <button className="link-btn" onClick={() => navigate("/register")}> Dont have an account? Click here to register!</button>
             </div>
         </div>
-    )
+      </div>
+    <Footer />
+  </div>
+  )
 }
 
 export default Login

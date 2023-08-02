@@ -1,24 +1,19 @@
+import './styles.css';
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.js'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import ErrorPage from './components/ErrorPage'
-import Home from './components/Home'
-import Register  from "./components/Register"
-import Login from "./components/Login"
-import Logout from "./components/Logout"
-import Profile from "./components/Profile"
-import MainPage from "./components/MainPage"
-import Search from "./components/Search"
-import User from "./components/User"
-import CreatePost from "./components/CreatePost"
-import CreateComment from "./components/CreateComment"
-import AllPosts from "./components/AllPosts"
+import MainPage from './pages/MainPage'
+import Home from './pages/Home'
+import Register  from "./pages/Register"
+import Login from "./pages/Login"
+import Logout from "./pages/Logout"
+import Profile from "./pages/Profile"
+import User from "./pages/User"
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element:<App />,
     errorElement: <ErrorPage />,
     children: [
       {index: true, element: <Home />},
@@ -30,40 +25,24 @@ const router = createBrowserRouter([
         path: "/login",
         element: <Login />,
       },
-      {
-        path: "/logout",
-        element: <Logout />,
-      },
-      {
-        path: "/profile",
-        element: <Profile />,
-      },
-      {
-        path: "/main",
-        element: <MainPage />,
-      },
-      {
-        path: "/search",
-        element: <Search />,
-      },
-      {
-        path: "/user/:userId",
-        element: <User />,
-      },
-      {
-        path: "/create-post",
-        element: <CreatePost />,
-      },
-      {
-        path: "/create-comment",
-        element: <CreateComment />,
-      },
-      {
-        path: "/all-posts",
-        element: <AllPosts />,
-      },
     ]
-  }
+  },
+  {
+    path: "/main",
+    element: <MainPage />,
+  },
+  {
+    path: "/user/:userId",
+    element: <User />,
+  },
+  {
+    path: "/profile",
+    element: <Profile />,
+  },
+  {
+    path: "/logout",
+    element: <Logout />,
+  },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(

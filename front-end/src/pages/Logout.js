@@ -1,18 +1,12 @@
 import { useEffect } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
-import { displayErrorMessage } from "./ErrorMessage";
+import { useNavigate } from 'react-router-dom';
+import { displayErrorMessage } from "../components/ErrorMessage";
 
 function Logout() {
   const navigate = useNavigate();
-  const { setToken } = useOutletContext();
 
   useEffect(() => {
-    const requestOptions = {
-      method: "GET",
-      credentials: "include",
-    };
-
-    fetch("/logout", requestOptions)
+    fetch("/logout")
       .catch(error => {
         displayErrorMessage(`${error.message}`);
       })
@@ -21,9 +15,9 @@ function Logout() {
         document.cookie = "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         navigate("/");
       });
-  }, [navigate, setToken]);
+  }, [navigate]);
 
-  return null; 
+  return null
 }
 
 export default Logout;
