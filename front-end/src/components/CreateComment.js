@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { displayErrorMessage } from "./ErrorMessage";
 import { useNavigate } from "react-router-dom"
 
-function CreateComment({ postID }) {
+function CreateComment({ postID, addNewComment }) {
   const [commentContent, setCommentContent] = useState("");
-  const [imageOrGif, setImageOrGif] = useState(null);
+  const [imageOrGif, setImageOrGif] = useState("");
   const [isCommentFocused, setIsCommentFocused] = useState(false);
 
   const navigate = useNavigate();
@@ -59,8 +59,18 @@ function CreateComment({ postID }) {
       .then((response) => {
         if (response.ok) {
           setCommentContent("");
-          setImageOrGif(null);
-          navigate("/main")
+          setImageOrGif("");
+          response.json().then((createdComment) => {
+            // Construct the new comment object using the response from the server
+            const newComment = {
+              comment_id: createdComment.comment_id,
+              first_name: createdComment.first_name,
+              last_name: createdComment.last_name,
+              comment: createdComment.comment,
+              date: createdComment.date,
+            };
+            addNewComment(postID, newComment); // Call the function to update the state of allPosts
+          });
         } else {
           return response.json(); 
         }
@@ -82,9 +92,9 @@ function CreateComment({ postID }) {
           onBlur={handleBlur} required/>
             {isCommentFocused && (
                 <>
-                    <label htmlFor="image"></label>
-                    <input className="insert" type="file" name="image" accept="image/*, .gif" value={imageOrGif} onChange={handleImageChange}/>
-                    <button className="comment-button" type="submit">Add Comment</button>
+                  <label htmlFor="image"></label>
+                  <input className="insert" type="file" name="image" accept="image/*, .gif" value={imageOrGif} onChange={handleImageChange}/>
+                  <button className="comment-button" type="submit">Add Comment</button>
                 </>
             )}
       </form>

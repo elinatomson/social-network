@@ -116,6 +116,22 @@ body {
     max-width: 30%;
   }
 
+  .accept-button {
+    display: block;
+    font-size: 15px;
+    color: #fff;
+    background-color: #1F2833;
+    border: 1px solid #66FCF1;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Vina Sans', cursive;
+    margin-top: 1%;
+    padding-bottom: 2px;
+    text-align: center;
+    text-decoration: none;
+    max-width: 30%;
+  }
+
   .log-out-button {
     display: block;
     font-size: 25px;
@@ -321,6 +337,7 @@ body {
     width: 90%;
     outline:none;
     margin-left: 2%;
+    overflow: auto;
   }
 
   .posting{
@@ -342,7 +359,6 @@ body {
     padding-bottom: 1%;
     margin-bottom: 2%;
     margin-left: 10%;
-    overflow: auto;
     background-color: rgb(206, 205, 205);
     color: #1F2833;
     text-align: left;
@@ -351,6 +367,8 @@ body {
 
   .post{
     text-align: center;
+    width: 80%;
+    word-break: break-all;
   }
 
   .poster{
@@ -394,10 +412,13 @@ body {
     margin-left: 6%;
     text-align: left;
     padding: 1%;
+
   }
 
   .comment-text{
     margin-left: 2%;
+    width: 80%;
+    word-break: break-all;
   }
 
   .app-container {
@@ -421,7 +442,7 @@ body {
   .following{
     font-family: 'Vina Sans', cursive;
     margin-top: 10%;
-    font-size: 30px;
+    font-size: 25px;
     color:#66FCF1
   }
 
@@ -429,4 +450,8 @@ body {
     font-family: 'Orbitron', sans-serif;
     text-align: left;
     margin-top: 0%;
+  }
+
+  .request{
+    margin-left: 30%;
   }

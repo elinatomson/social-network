@@ -8,6 +8,7 @@ import DOB from './../images/dob.PNG';
 import About from './../images/about.PNG';
 import Avatar from './../images/avatar.PNG';
 import CreateComment from "../components/CreateComment";
+import Follow from "../components/Follow";
 import Following from "../components/Following";
 import Followers from "../components/Followers";
 
@@ -47,40 +48,6 @@ function User() {
       });
     }
   }, [navigate, userId, token]);
-
-  const handleFollowUnfollow = () => {
-      const followData = {
-        following_id: parseInt(userId), 
-        request_pending: !userData.user_data.public,
-      };
-
-      const headers = new Headers();
-      headers.append("Content-Type", "application/json");
-      headers.append("Authorization", token);
-  
-      let requestOptions = {
-        body: JSON.stringify(followData),
-        method: "POST",
-        headers: headers,
-      }
-
-      fetch('/follow', requestOptions)
-      .then((response) => {
-        if (!response.ok) {
-          return response.json().then((data) => {
-            throw new Error(data.message);
-          })
-        } else {
-          return response.json();
-        }
-      })
-      .then((data) => {
-        console.log(data)
-      })
-      .catch((error) => {
-        displayErrorMessage(`An error occured while trying to follow this user: ${error.message}`);
-      });
-  };
 
   const sortedPosts = Array.isArray(userData.posts)
   ? userData.posts.sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -132,9 +99,9 @@ function User() {
                   ) : null}
                 </div>
                 <div className="middle-container">
-                  <button className="profile-type-button" onClick={handleFollowUnfollow}>
-                    Follow
-                  </button>
+                  <div>
+                    <Follow userData={!userData.user_data.public} userId={parseInt(userId)} />
+                  </div>
                   {userData.user_data.public ? (
                     <>
                       <div className="activity">User activity</div>

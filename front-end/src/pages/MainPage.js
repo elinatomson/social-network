@@ -7,6 +7,7 @@ import Avatar from '../images/avatar.PNG';
 import Search from "../components/Search";
 import CreatePost from "../components/CreatePost";
 import AllPosts from "../components/AllPosts";
+import FollowRequests from "../components/FollowRequests";
 
 function MainPage() {
   const navigate = useNavigate();
@@ -54,6 +55,9 @@ function MainPage() {
                   </div>
                 <div className="user1">{userData.first_name} {userData.last_name}</div>
                 <Link className="profile-btn" to="/profile">Profile</Link>
+                <div className="request">
+                  <FollowRequests />
+                </div>
               </div>
               <div className="middle-container">
                 <CreatePost/>

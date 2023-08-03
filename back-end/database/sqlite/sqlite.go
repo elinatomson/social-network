@@ -509,13 +509,13 @@ func (m *SqliteDB) FollowRequests(userID int) ([]models.FollowRequest, error) {
 	return followRequests, nil
 }
 
-func (m *SqliteDB) ApproveFollower(userID, followingID int) error {
+func (m *SqliteDB) AcceptFollower(userID, followerID int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `UPDATE followers SET request_pending = false WHERE (user_id = ? AND following_id = ?)`
+	stmt := `UPDATE followers SET request_pending = false WHERE (following_id = ? AND follower_id = ?)`
 
-	_, err := m.DB.ExecContext(ctx, stmt, userID, followingID)
+	_, err := m.DB.ExecContext(ctx, stmt, userID, followerID)
 	if err != nil {
 		return err
 	}

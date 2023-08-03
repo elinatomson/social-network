@@ -25,9 +25,11 @@ function Followers() {
       ) : (
         <div className="user">
           {followersUsers.map((user) => (
-            <Link className="link" key={user.user_id} to={`/user/${user.user_id}`}>
-              {user.first_name} {user.last_name}
-            </Link>
+            <div key={user.user_id}>
+              <Link className="link" to={`/user/${user.user_id}`}>
+                {user.first_name} {user.last_name}
+              </Link>
+            </div>
           ))}
         </div>
       )}

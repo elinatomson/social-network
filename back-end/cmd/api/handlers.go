@@ -528,6 +528,11 @@ func (app *application) FollowRequestsHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (app *application) AcceptFollowerHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+        app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+        return
+    }
+
 	if r.URL.Path != "/accept-follower" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return
@@ -546,7 +551,7 @@ func (app *application) AcceptFollowerHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = app.database.ApproveFollower(userID, request.FollowingID)
+	err = app.database.AcceptFollower(userID, request.FollowerID)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to update follower status"), http.StatusInternalServerError)
 		return

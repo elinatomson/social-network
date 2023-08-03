@@ -23,6 +23,7 @@ func (app *application) routes() http.Handler {
 	mux.Handle("/following", app.authRequired(http.HandlerFunc(app.FollowingHandler)))
 	mux.Handle("/followers", app.authRequired(http.HandlerFunc(app.FollowersHandler)))
 	mux.Handle("/follow-requests", app.authRequired(http.HandlerFunc(app.FollowRequestsHandler)))
+	mux.Handle("/accept-follower", app.authRequired(http.HandlerFunc(app.AcceptFollowerHandler)))
 
 	return handler
 }

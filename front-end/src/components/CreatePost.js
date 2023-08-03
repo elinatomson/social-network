@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom"
 function CreatePost() {
   const [postContent, setPostContent] = useState("");
   const [postPrivacy, setPostPrivacy] = useState("public");
-  const [imageOrGif, setImageOrGif] = useState(null);
+  const [imageOrGif, setImageOrGif] = useState("");
   const [errors, setErrors] =useState([])
 
   const navigate = useNavigate();
@@ -75,8 +75,9 @@ function CreatePost() {
         if (response.ok) {
           setPostContent("");
           setPostPrivacy("public");
-          setImageOrGif(null);
-          navigate("/main")
+          setImageOrGif("");
+          // Use the navigate function to redirect to the /main page and pass the post data in the state object
+          navigate("/main", { state: { postContent } });
         } else {
           return response.json(); 
         }
