@@ -82,20 +82,11 @@ function Profile() {
 
   return (
     <div className="app-container">
-      <div className="content">
-        <Header />
-        <div>
+      <Header />
+      <div className="home">
           {userData.user_data ? (
             <div className="container">
               <div className="left-container">
-                <div className="avatar">
-                  <img
-                    className="avatar-img"
-                    src={userData.user_data.avatar ? userData.user_data.avatar : Avatar}
-                    alt="avatar"
-                  />
-                </div>
-                <div className="user1">{userData.user_data.first_name} {userData.user_data.last_name}</div>
                 <div className="user2">
                   <p><img className="dob" src={DOB} alt="dob"></img> {userData.user_data.date_of_birth}</p>
                   <p><img className="email" src={Email} alt="email"></img> {userData.user_data.email}</p>
@@ -154,15 +145,12 @@ function Profile() {
                   )}
               </div>
               <div className="right-container">
-                <Link className="log-out-button" to="/main">Main Page</Link>
-                <Link className="log-out-button" to="/logout">Log Out</Link>
               </div>
             </div>
           ) : (
             <p>Loading user data...</p>
           )}
         </div>
-      </div>
       <Footer />
     </div>
   );

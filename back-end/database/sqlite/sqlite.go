@@ -522,3 +522,18 @@ func (m *SqliteDB) AcceptFollower(userID, followerID int) error {
 
 	return nil
 }
+
+func (m *SqliteDB) DeclineFollower(userID, followerID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `DELETE FROM followers WHERE (following_id = ? AND follower_id = ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, userID, followerID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+

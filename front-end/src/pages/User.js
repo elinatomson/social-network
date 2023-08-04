@@ -55,35 +55,37 @@ function User() {
 
   return (
       <div className="app-container">
-        <div className="content">
           <Header />
+          <div className="home">
           <div>
             <div id="error" className="alert"></div>
             {userData.user_data ? (
               <div className="container">
                 <div className="left-container">
-                  <div className="avatar">
+                </div>
+                <div className="middle-container">
+                <div className="user-avatar">
                     <img
-                      className="avatar-img"
+                      className="user-avatar-img"
                       src={userData.user_data.avatar ? userData.user_data.avatar : Avatar}
                       alt="avatar"
                     />
                   </div>
-                  <div className="user1">
+                  <div className="user-user1">
                     {userData.user_data.first_name} {userData.user_data.last_name}
                   </div>
                   {userData.user_data.public ? (
-                    <div className="user2">
+                    <div className="user-user2">
                       <p>
-                        <img className="dob" src={DOB} alt="dob" />
+                        <img className="user-dob" src={DOB} alt="dob" />
                         {userData.user_data.date_of_birth}
                       </p>
                       <p>
-                        <img className="email" src={Email} alt="email" />
+                        <img className="user-email" src={Email} alt="email" />
                         {userData.user_data.email}
                       </p>
                       <p>
-                        <img className="about" src={About} alt="about" />
+                        <img className="user-about" src={About} alt="about" />
                         Nickname: "{userData.user_data.nickname}" About the user: "
                         {userData.user_data.about_me}"
                       </p>
@@ -97,8 +99,6 @@ function User() {
                       </div>
                     </div>
                   ) : null}
-                </div>
-                <div className="middle-container">
                   <div>
                     <Follow userData={!userData.user_data.public} userId={parseInt(userId)} />
                   </div>
@@ -153,16 +153,10 @@ function User() {
                       )}
                     </>
                   ) : (
-                    <p>This user's profile is private.</p>
+                    <p className="center">This user's profile is private.</p>
                   )}
                 </div>
                 <div className="right-container">
-                  <Link className="log-out-button" to="/main">
-                    Main Page
-                  </Link>
-                  <Link className="log-out-button" to="/logout">
-                    Log Out
-                  </Link>
                 </div>
               </div>
             ) : (

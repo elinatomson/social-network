@@ -11,6 +11,11 @@ body {
     text-align: center;
   }
 
+  .home{
+    align-items: center;
+    flex: 1;
+  }
+
   .error {
     color: rgb(247, 97, 97);
     font-family: 'Orbitron', sans-serif;
@@ -23,16 +28,17 @@ body {
   }
   
   .heading1 {
-    margin-left: 35%;
     font-family: 'Orbitron', sans-serif;
     font-size: 50px;
+    margin-left: 0%;
     color: white;
+    margin-left: 15%;
   }
   
   .heading2 {
     font-family: 'Vina Sans', cursive;
     font-size: 70px;
-    margin-left: 40%;
+    margin-left: 30%;
     color:#66FCF1
   }
   
@@ -129,7 +135,7 @@ body {
     padding-bottom: 2px;
     text-align: center;
     text-decoration: none;
-    max-width: 30%;
+    max-width: 80%;
   }
 
   .log-out-button {
@@ -195,6 +201,8 @@ body {
     text-align: center;
     text-decoration: none;
     width: 100%;
+    margin-bottom: 2%;
+    margin-top: 2%;
   }
   
   .button:hover, .log-out-button:hover, .custom-file-input:hover, .comment-button:hover, .profile-type-button:hover {
@@ -266,12 +274,42 @@ body {
     border-radius: 20px;
   }
 
+  .user-user1 {
+    font-family: 'Vina Sans', cursive;
+    font-size: 40px;
+    color: #66FCF1;
+    margin-left: 39%;
+  }
+
+  .user-user2 {
+    font-family: 'Orbitron', sans-serif;
+    margin-left: 25%;
+  }
+
+  .user-avatar{
+    margin-left: 42%;
+  }
+
+  .user-email, .user-dob {
+    width: 5%;
+    border-radius: 20px;
+  }
+
   .about {
     width: 10%;
+  }
+  
+  .user-about {
+    width: 5%;
   }
 
   .avatar-img {
     width: 40%;
+    border-radius: 90px;
+  }
+
+  .user-avatar-img {
+    width: 25%;
     border-radius: 90px;
   }
 
@@ -286,25 +324,25 @@ body {
   .container {
     display: flex;
     justify-content: space-between;
-    margin-top: 2%;
   }
 
   .left-container {
     flex: 2;
     padding: 10px;
-    margin-right: 5%;
+
   }
 
   .middle-container {
     flex: 4;
     padding: 10px;
     font-family: 'Orbitron', sans-serif;
-    text-align: center;
+    margin-top: 1%;
   }
 
   .right-container {
     flex: 2;
     padding: 10px;
+    margin-top: 1%;
   }
 
   
@@ -330,7 +368,6 @@ body {
     font-size: 35px;
     text-align: center;
     margin-bottom: 2%;
-    margin-top: 2%;
   }
 
   .content {
@@ -345,10 +382,9 @@ body {
     padding: 1%;
     padding-right: 2%;
     border-radius: 20px;
-    width: 85%;
+    width: 100%;
     padding-bottom: 2%;
     margin-bottom: 2%;
-    margin-left: 7%;
     overflow: auto;
   }
 
@@ -367,7 +403,7 @@ body {
 
   .post{
     text-align: center;
-    width: 80%;
+    width: 100%;
     word-break: break-all;
   }
 
@@ -392,6 +428,7 @@ body {
     outline:none;
     border: none;
     color: #737474;
+    margin-left: 4%;
   }
 
   .insert{
@@ -409,7 +446,7 @@ body {
     width: 86%;
     border-radius: 10px;
     margin-bottom: 1%;
-    margin-left: 6%;
+    margin-left: 5%;
     text-align: left;
     padding: 1%;
 
@@ -417,7 +454,7 @@ body {
 
   .comment-text{
     margin-left: 2%;
-    width: 80%;
+    width: 100%;
     word-break: break-all;
   }
 
@@ -425,10 +462,6 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-  }
-
-  .content {
-    flex: 1;
   }
 
   .footer {
@@ -441,7 +474,7 @@ body {
 
   .following{
     font-family: 'Vina Sans', cursive;
-    margin-top: 10%;
+    margin-top: 5%;
     font-size: 25px;
     color:#66FCF1
   }
@@ -454,4 +487,5 @@ body {
 
   .request{
     margin-left: 30%;
+    margin-bottom: 1%;
   }

@@ -505,6 +505,7 @@ func (app *application) FollowRequestsHandler(w http.ResponseWriter, r *http.Req
 	userID, _, _, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		userID = 0
 		return
 	}
 
@@ -524,14 +525,14 @@ func (app *application) FollowRequestsHandler(w http.ResponseWriter, r *http.Req
 		usersData = append(usersData, user)
 	}
 
-    _ = app.writeJSON(w, http.StatusOK, usersData)
+	_ = app.writeJSON(w, http.StatusOK, usersData)
 }
 
 func (app *application) AcceptFollowerHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-        app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
-        return
-    }
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
 
 	if r.URL.Path != "/accept-follower" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
@@ -561,4 +562,36 @@ func (app *application) AcceptFollowerHandler(w http.ResponseWriter, r *http.Req
 	_ = app.writeJSON(w, http.StatusOK, response)
 }
 
+func (app *application) DeclineFollowerHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
 
+	if r.URL.Path != "/decline-follower" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	var request models.FollowRequest
+	err = app.readJSON(w, r, &request)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	err = app.database.DeclineFollower(userID, request.FollowerID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to decline follower request"), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string{"message": "Follower request declined successfully"}
+	_ = app.writeJSON(w, http.StatusOK, response)
+}

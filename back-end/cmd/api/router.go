@@ -24,6 +24,7 @@ func (app *application) routes() http.Handler {
 	mux.Handle("/followers", app.authRequired(http.HandlerFunc(app.FollowersHandler)))
 	mux.Handle("/follow-requests", app.authRequired(http.HandlerFunc(app.FollowRequestsHandler)))
 	mux.Handle("/accept-follower", app.authRequired(http.HandlerFunc(app.AcceptFollowerHandler)))
+	mux.Handle("/decline-follower", app.authRequired(http.HandlerFunc(app.DeclineFollowerHandler)))
 
 	return handler
 }

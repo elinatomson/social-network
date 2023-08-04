@@ -35,7 +35,7 @@ function Follow ({ userData, userId }) {
     };
 
     return (
-        <button className="profile-type-button" onClick={handleFollowUnfollow}>
+        <button className="follow-button" onClick={handleFollowUnfollow}>
             Follow
         </button>
     )
