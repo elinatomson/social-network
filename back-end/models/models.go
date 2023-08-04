@@ -16,11 +16,10 @@ type UserData struct {
 }
 
 type FollowRequest struct {
-	FollowingID    int  `json:"following_id"`
-	FollowerID    int  `json:"follower_id"`
-	RequestPending *bool   `json:"request_pending,omitempty"`
+	FollowingID    int   `json:"following_id"`
+	FollowerID     int   `json:"follower_id"`
+	RequestPending *bool `json:"request_pending,omitempty"`
 }
-
 
 type Post struct {
 	PostID    int       `json:"post_id"`
@@ -29,6 +28,7 @@ type Post struct {
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
 	Privacy   string    `json:"privacy"`
+	Names     []string    `json:"names"`
 	Image     string    `json:"image"`
 	Date      time.Time `json:"date"`
 	Comments  []Comment `json:"comments"`
@@ -52,4 +52,3 @@ type Session struct {
 	LastName  string `json:"last_name"`
 	Cookie    string `json:"cookie"`
 }
-

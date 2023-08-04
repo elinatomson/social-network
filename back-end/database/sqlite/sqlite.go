@@ -192,26 +192,25 @@ func (m *SqliteDB) GetUser(id int) (*models.UserData, error) {
 }
 
 func (m *SqliteDB) GetUserByID(userID int) (*models.UserData, error) {
-    ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
 
-    stmt := `SELECT user_id, first_name, last_name FROM users WHERE user_id = $1`
+	stmt := `SELECT user_id, first_name, last_name FROM users WHERE user_id = $1`
 
-    row := m.DB.QueryRowContext(ctx, stmt, userID)
+	row := m.DB.QueryRowContext(ctx, stmt, userID)
 
-    var user models.UserData
+	var user models.UserData
 
-    err := row.Scan(
-        &user.UserID, &user.FirstName, &user.LastName,
-    )
+	err := row.Scan(
+		&user.UserID, &user.FirstName, &user.LastName,
+	)
 
 	if err != nil {
 		return nil, err
 	}
 
-    return &user, nil
+	return &user, nil
 }
-
 
 func (m *SqliteDB) CreatePost(post *models.Post) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
@@ -219,9 +218,9 @@ func (m *SqliteDB) CreatePost(post *models.Post) error {
 
 	post.Date = time.Now()
 
-	stmt := `INSERT INTO posts (user_id, content, first_name, last_name, privacy, image, date) VALUES (?, ?, ?, ?, ?, ?, ?)`
+	stmt := `INSERT INTO posts (user_id, content, first_name, last_name, privacy, names, image, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 
-	_, err := m.DB.ExecContext(ctx, stmt, post.UserID, post.Content, post.FirstName, post.LastName, post.Privacy, post.Image, post.Date)
+	_, err := m.DB.ExecContext(ctx, stmt, post.UserID, post.Content, post.FirstName, post.LastName, post.Privacy, post.Names, post.Image, post.Date)
 	if err != nil {
 		return err
 	}
@@ -233,7 +232,7 @@ func (m *SqliteDB) AllPosts() ([]models.Post, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT post_id, user_id, content, first_name, last_name, image, date FROM posts`
+	stmt := `SELECT post_id, user_id, content, first_name, last_name, privacy, image, date FROM posts`
 
 	rows, err := m.DB.QueryContext(ctx, stmt)
 	if err != nil {
@@ -243,13 +242,37 @@ func (m *SqliteDB) AllPosts() ([]models.Post, error) {
 	var posts []models.Post
 	for rows.Next() {
 		var post models.Post
-		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Image, &post.Date)
+		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Privacy, &post.Image, &post.Date)
 		if err != nil {
 			return nil, err
 		}
 		posts = append(posts, post)
 	}
 	return posts, nil
+}
+
+func (m *SqliteDB) GetPublicPosts() ([]models.Post, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT post_id, user_id, content, first_name, last_name, image, date FROM posts WHERE privacy = 'public'`
+
+	rows, err := m.DB.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+
+	var publicPosts []models.Post
+	for rows.Next() {
+		var post models.Post
+		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Image, &post.Date)
+		if err != nil {
+			return nil, err
+		}
+		publicPosts = append(publicPosts, post)
+	}
+
+	return publicPosts, nil
 }
 
 func (m *SqliteDB) ProfilePosts(firstName string, lastName string) ([]models.Post, error) {
@@ -536,4 +559,3 @@ func (m *SqliteDB) DeclineFollower(userID, followerID int) error {
 
 	return nil
 }
-

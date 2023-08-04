@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS `posts` (
 	`first_name` 	TEXT NOT NULL,
 	`last_name` 	TEXT NOT NULL,
     `privacy` 	    TEXT NOT NULL,
+    `names` 	    TEXT,
     `image` 	    TEXT,
     `date` 	        DATETIME
 );

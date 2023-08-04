@@ -277,6 +277,8 @@ func (app *application) CreatePostHandler(w http.ResponseWriter, r *http.Request
 	post.FirstName = firstName
 	post.LastName = lastName
 
+	//post.Names = selectedUsers
+
 	err = app.database.CreatePost(&post)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
@@ -299,27 +301,51 @@ func (app *application) AllPostsHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
+		return
+	}
+
 	var allPosts []models.Post
 
-	allPosts, err := app.database.AllPosts()
+	allPosts, err = app.database.AllPosts()
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
 		return
 	}
 
-	// Fetch comments for each post and add them to the posts
-	for i := range allPosts {
-		postID := allPosts[i].PostID
+	// Filter posts based on privacy setting
+	var filteredPosts []models.Post
+	for _, post := range allPosts {
+		if post.Privacy == "public" || post.UserID == userID {
+			filteredPosts = append(filteredPosts, post)
+		} else {
+			// For private posts, include them only if the user is following the post's author
+			isFollowing, err := app.database.IsFollowing(userID, post.UserID)
+			if err != nil {
+				app.errorJSON(w, fmt.Errorf("Error checking if the user is following the post author"), http.StatusInternalServerError)
+				return
+			}
+			if isFollowing {
+				filteredPosts = append(filteredPosts, post)
+			}
+		}
+	}
+
+	//comments for each post and add them to the filtered posts
+	for i := range filteredPosts {
+		postID := filteredPosts[i].PostID
 		comments, err := app.database.GetCommentsByPostID(postID)
 		if err != nil {
 			app.errorJSON(w, fmt.Errorf("Error getting comments from the database"), http.StatusInternalServerError)
 			return
 		}
 
-		allPosts[i].Comments = comments
+		filteredPosts[i].Comments = comments
 	}
 
-	_ = app.writeJSON(w, http.StatusOK, allPosts)
+	_ = app.writeJSON(w, http.StatusOK, filteredPosts)
 }
 
 func (app *application) CommentHandler(w http.ResponseWriter, r *http.Request) {

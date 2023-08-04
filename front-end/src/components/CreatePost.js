@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { displayErrorMessage } from "./ErrorMessage";
 import { useNavigate } from "react-router-dom"
+import Search from "../components/Search";
 
 function CreatePost() {
   const [postContent, setPostContent] = useState("");
   const [postPrivacy, setPostPrivacy] = useState("public");
   const [imageOrGif, setImageOrGif] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const [errors, setErrors] =useState([])
 
   const navigate = useNavigate();
@@ -34,6 +37,18 @@ function CreatePost() {
     setImageOrGif(file);
   };
 
+  const handleUserSelection = (userId) => {
+    setSelectedUsers((prevSelectedUsers) => {
+      if (prevSelectedUsers.includes(userId)) {
+        // User is already selected, so remove from the selection
+        return prevSelectedUsers.filter((id) => id !== userId);
+      } else {
+        // User is not selected, so add to the selection
+        return [...prevSelectedUsers, userId];
+      }
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -57,6 +72,7 @@ function CreatePost() {
     const postData = {
     content: postContent,
     privacy: postPrivacy,
+    names: selectedUsers,
     image: imageOrGif,
     };
 
@@ -78,6 +94,7 @@ function CreatePost() {
           setImageOrGif("");
           // Use the navigate function to redirect to the /main page and pass the post data in the state object
           navigate("/main", { state: { postContent } });
+          console.log(response)
         } else {
           return response.json(); 
         }
@@ -105,8 +122,33 @@ function CreatePost() {
                 <select className="privacy" name="privacy" value={postPrivacy} onChange={handlePrivacyChange} required>
                     <option value="public">Public</option>
                     <option value="private">Private</option>
-                    <option value="almost-private">Almost Private</option>
+                    <option value="almost-private">For selected users</option>
                 </select>
+                <div className="post-search">
+                {postPrivacy === "almost-private" && (
+                  <Search setSearchResults={setSearchResults} />
+                )}
+                <div className="search-results">
+                  {searchResults !== null && searchResults.length > 0 && (
+                    searchResults.map((result) => (
+                      <div key={result.user_id} className="search-result-item">
+                          <label htmlFor="names"></label>
+                          <input
+                          type="checkbox"
+                          name="names"
+                          value={result.user_id}
+                          onChange={() => handleUserSelection(result.user_id)}
+                          checked={selectedUsers.includes(result.user_id)}
+                          />
+                        {result.first_name} {result.last_name}
+                      </div>
+                    ))
+                  )}
+                  {searchResults !== null && searchResults.length === 0 && (
+                  <p>No results found for your search query.</p>
+                )}
+                </div>
+                </div>
             </div>
             <div className="right-container1">
                 <label htmlFor="image"></label>

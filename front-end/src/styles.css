@@ -317,6 +317,11 @@ body {
     width: 33%;
   }
 
+  .post-search{
+    width: 85%;
+    margin-left: 4%;
+  }
+
   .search-results {
     font-family: 'Orbitron', sans-serif;
   }
@@ -388,6 +393,11 @@ body {
     overflow: auto;
   }
 
+  .names{
+    margin-left: 4%;
+    width: 65%;
+  }
+
   .posts{
     border: 1px solid white;
     border-radius: 20px;
@@ -418,7 +428,7 @@ body {
   .post-date{
     font-size: 10px;
     text-align: left;
-    margin-left: 3%;
+    margin-left: 2%;
     margin-top: 0%;
   }
 
