@@ -2,13 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 function Following() {
-  // Assuming you have already fetched the data and stored it in the followingUsers state
   const [followingUsers, setFollowingUsers] = useState([]);
 
-  // Function to fetch following users from the server
   useEffect(() => {
-    // Make an API call to fetch the list of following users
-    // Replace 'API_ENDPOINT' with your actual backend API endpoint
     fetch('/following')
       .then((response) => response.json())
       .then((data) => {

@@ -175,7 +175,6 @@ func (app *application) MainPageHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Query the database to retrieve the user data based on the his email
 	userData, err := app.database.GetUserDataByEmail(email)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to fetch user data"), http.StatusInternalServerError)
@@ -197,7 +196,6 @@ func (app *application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Perform the search query on the database to retrieve matching users
 	users, err := app.database.SearchUsers(query)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error searching users: %s", err), http.StatusInternalServerError)
@@ -227,15 +225,55 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
+		return
+	}
+
+	var filteredPosts []models.Post
 	for i := range allPosts {
-		postID := allPosts[i].PostID
+		post := allPosts[i]
+		if post.Privacy == "public" {
+			filteredPosts = append(filteredPosts, post)
+		} else if post.Privacy == "for-selected-users" {
+			if post.SelectedUserID == "" {
+				continue
+			}
+			selectedUserIDs := strings.Split(post.SelectedUserID, ",")
+			for _, user := range selectedUserIDs {
+				selectedUserID, err := strconv.Atoi(user)
+				if err != nil {
+					app.errorJSON(w, fmt.Errorf("Error converting selected user ID to integer"), http.StatusInternalServerError)
+					return
+				}
+				if selectedUserID == userID {
+					filteredPosts = append(filteredPosts, post)
+					break
+				}
+			}
+		} else {
+			isFollowing, err := app.database.IsFollowing(userID, post.UserID)
+			if err != nil {
+				app.errorJSON(w, fmt.Errorf("Error checking if the user is following the post author"), http.StatusInternalServerError)
+				return
+			}
+			if isFollowing {
+				filteredPosts = append(filteredPosts, post)
+			}
+		}
+	}
+
+	//comments for each post and add them to the filtered posts
+	for i := range filteredPosts {
+		postID := filteredPosts[i].PostID
 		comments, err := app.database.GetCommentsByPostID(postID)
 		if err != nil {
 			app.errorJSON(w, fmt.Errorf("Error getting comments from the database"), http.StatusInternalServerError)
 			return
 		}
 
-		allPosts[i].Comments = comments
+		filteredPosts[i].Comments = comments
 	}
 
 	userDataWithPosts := struct {
@@ -243,7 +281,7 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 		Posts    []models.Post    `json:"posts"`
 	}{
 		UserData: user,
-		Posts:    allPosts,
+		Posts:    filteredPosts,
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, userDataWithPosts)
@@ -276,8 +314,6 @@ func (app *application) CreatePostHandler(w http.ResponseWriter, r *http.Request
 	post.UserID = userId
 	post.FirstName = firstName
 	post.LastName = lastName
-
-	//post.Names = selectedUsers
 
 	err = app.database.CreatePost(&post)
 	if err != nil {
@@ -320,6 +356,21 @@ func (app *application) AllPostsHandler(w http.ResponseWriter, r *http.Request) 
 	for _, post := range allPosts {
 		if post.Privacy == "public" || post.UserID == userID {
 			filteredPosts = append(filteredPosts, post)
+		} else if post.Privacy == "for-selected-users" {
+			// Splitting the comma-separated string of selected user IDs into a slice of strings
+			selectedUserIDs := strings.Split(post.SelectedUserID, ",")
+			// Checking if the logged-in user's ID is in the selectedUserIDs slice
+			for _, user := range selectedUserIDs {
+				selectedUserID, err := strconv.Atoi(user)
+				if err != nil {
+					app.errorJSON(w, fmt.Errorf("Error converting selected user ID to integer"), http.StatusInternalServerError)
+					return
+				}
+				if selectedUserID == userID {
+					filteredPosts = append(filteredPosts, post)
+					break
+				}
+			}
 		} else {
 			// For private posts, include them only if the user is following the post's author
 			isFollowing, err := app.database.IsFollowing(userID, post.UserID)

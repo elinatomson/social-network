@@ -117,6 +117,9 @@ function Profile() {
                     <span className="poster">{post.first_name} {post.last_name}</span>
                     <span className="post-date">{new Date(post.date).toLocaleString()}</span>
                   </div>
+                  <div className="post-date">
+                    {post.privacy} 
+                  </div>
                   <p className="post">{post.content}</p>
                   {post.image && <img src={post.image} alt="PostImage" />}
                   <div className="comments">

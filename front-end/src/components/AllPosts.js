@@ -70,7 +70,7 @@ function AllPosts() {
                 <span className="post-date">{new Date(post.date).toLocaleString()}</span>
               </div>
               <div className="post-date">
-                {post.privacy} post 
+                {post.privacy} 
               </div>
               <p className="post">{post.content}</p>
               {post.image && <img src={post.image} alt="PostImage" />}

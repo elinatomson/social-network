@@ -17,7 +17,7 @@ function FollowRequests() {
         .catch((error) => {
         console.error('Error fetching follow requests:', error);
         });
-    }, [followRequests]);
+    }, []);
 
     if (!Array.isArray(followRequests)) {
       return;

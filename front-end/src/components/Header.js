@@ -11,18 +11,7 @@ function Header() {
   const [searchResults, setSearchResults] = useState(null);
 
   useEffect(() => {
-    const token = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("sessionId="))
-      ?.split("=")[1];
-
-    if (!token) {
-      navigate("/");
-    } else {
       fetch("/main", {
-        headers: {
-          Authorization: `${token}`,
-        },
       })
         .then((response) => response.json())
         .then((data) => {
@@ -31,7 +20,6 @@ function Header() {
         .catch((error) => {
           console.error("Failed to fetch user data:", error);
         });
-    }
   }, [navigate]);
 
   return (

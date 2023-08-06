@@ -68,11 +68,14 @@ function CreatePost() {
     if (errors.length > 0) {
       return;
     }
+
+    // Convert the selectedUsers array to a comma-separated string
+    const selectedUserIdString = selectedUsers.join(",");
     
     const postData = {
     content: postContent,
     privacy: postPrivacy,
-    names: selectedUsers,
+    selected_user_id: selectedUserIdString,
     image: imageOrGif,
     };
 
@@ -92,9 +95,10 @@ function CreatePost() {
           setPostContent("");
           setPostPrivacy("public");
           setImageOrGif("");
+          setSearchResults(null);
+          setSelectedUsers([]);
           // Use the navigate function to redirect to the /main page and pass the post data in the state object
           navigate("/main", { state: { postContent } });
-          console.log(response)
         } else {
           return response.json(); 
         }
@@ -122,20 +126,20 @@ function CreatePost() {
                 <select className="privacy" name="privacy" value={postPrivacy} onChange={handlePrivacyChange} required>
                     <option value="public">Public</option>
                     <option value="private">Private</option>
-                    <option value="almost-private">For selected users</option>
+                    <option value="for-selected-users">For selected users</option>
                 </select>
                 <div className="post-search">
-                {postPrivacy === "almost-private" && (
+                {postPrivacy === "for-selected-users" && (
                   <Search setSearchResults={setSearchResults} />
                 )}
                 <div className="search-results">
                   {searchResults !== null && searchResults.length > 0 && (
                     searchResults.map((result) => (
                       <div key={result.user_id} className="search-result-item">
-                          <label htmlFor="names"></label>
+                          <label htmlFor="selected_user_id"></label>
                           <input
                           type="checkbox"
-                          name="names"
+                          name="selected_user_id"
                           value={result.user_id}
                           onChange={() => handleUserSelection(result.user_id)}
                           checked={selectedUsers.includes(result.user_id)}

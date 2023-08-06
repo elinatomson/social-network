@@ -1,24 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { displayErrorMessage } from "./ErrorMessage";
-import { useNavigate } from "react-router-dom"
 
 function CreateComment({ postID, addNewComment }) {
   const [commentContent, setCommentContent] = useState("");
   const [imageOrGif, setImageOrGif] = useState("");
   const [isCommentFocused, setIsCommentFocused] = useState(false);
 
-  const navigate = useNavigate();
-
-  const token = document.cookie
-  .split("; ")
-  .find((row) => row.startsWith("sessionId="))
-  ?.split("=")[1];
-
-  useEffect(() => {
-    if (!token) {
-      navigate("/login");
-    }
-  }, [token, navigate]);
 
   const handleContentChange = (e) => {
     setCommentContent(e.target.value);
@@ -47,7 +34,6 @@ function CreateComment({ postID, addNewComment }) {
 
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
-    headers.append("Authorization", token);
 
     let requestOptions = {
       body: JSON.stringify(commentData),

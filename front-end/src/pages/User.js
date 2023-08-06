@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { displayErrorMessage } from "../components/ErrorMessage";
 import Header from '../components/Header';
 import Footer from "../components/Footer";
@@ -37,6 +37,7 @@ function User() {
             throw new Error(data.message);
           })
         } else {
+          document.cookie = "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/user;";
           return response.json();
         }
       })
@@ -118,6 +119,9 @@ function User() {
                                 <span className="post-date">
                                   {new Date(post.date).toLocaleString()}
                                 </span>
+                                <div className="post-date">
+                                  {post.privacy} 
+                                </div>
                               </div>
                               <p className="post">{post.content}</p>
                               {post.image && (
