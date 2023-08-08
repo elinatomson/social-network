@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"back-end/models"
 )
@@ -200,6 +201,25 @@ func (app *application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error searching users: %s", err), http.StatusInternalServerError)
 		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, users)
+}
+
+func (app *application) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
+	_, _, firstName, lastName, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
+		return
+	}
+
+	users, err := app.database.GetUsers()
+	//setting the currentUser in the users db table as a true to add the current user's nickname to the response
+	for i := range users {
+		if users[i].FirstName == firstName && users[i].LastName == lastName {
+			users[i].CurrentUser = true
+			break
+		}
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, users)
@@ -671,4 +691,70 @@ func (app *application) DeclineFollowerHandler(w http.ResponseWriter, r *http.Re
 
 	response := map[string]string{"message": "Follower request declined successfully"}
 	_ = app.writeJSON(w, http.StatusOK, response)
+}
+
+func (app *application) AddMessageHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/message" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var message models.Message
+	err := app.readJSON(w, r, &message)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	message = models.Message{
+		Message:       message.Message,
+		FirstNameFrom: message.FirstNameFrom,
+		FirstNameTo:   message.FirstNameTo,
+		Date:          time.Now(),
+	}
+	_, _, message.FirstNameFrom, _, err = app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the name"), http.StatusInternalServerError)
+		return
+	}
+
+	if message.Message != "" {
+		err = app.database.AddMessage(message.FirstNameFrom, message.FirstNameTo)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to update follower status"), http.StatusInternalServerError)
+			return
+		}
+	}
+	_ = app.writeJSON(w, http.StatusCreated, message)
+}
+func (app *application) GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/messages" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	firstNameTo := r.URL.Query().Get("nicknameTo")
+	_, _, firstNameFrom, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the name"), http.StatusInternalServerError)
+		return
+	}
+
+	messages, err := app.database.GetMessage(firstNameFrom, firstNameTo)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to update follower status"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, messages)
 }

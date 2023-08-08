@@ -2,17 +2,14 @@
 import Footer from "../components/Footer"
 import Header from "../components/Header"
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import Avatar from '../images/avatar.PNG';
-import Search from "../components/Search";
+import { useNavigate } from 'react-router-dom';
 import CreatePost from "../components/CreatePost";
 import AllPosts from "../components/AllPosts";
-import FollowRequests from "../components/FollowRequests";
+import Users from "../components/Users";
 
 function MainPage() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
-  const [searchResults, setSearchResults] = useState(null);
 
   useEffect(() => {
     const token = document.cookie
@@ -44,14 +41,15 @@ function MainPage() {
       <div className="home">
         <div>
           {userData ? (
-            <div className="container">
-              <div className="left-container">
-              </div>
-              <div className="middle-container">
-                <CreatePost/>
-                <AllPosts />
-              </div>
-              <div className="right-container">
+          <div className="container">
+            <div className="left-container">
+              <Users />
+            </div>
+            <div className="middle-container">
+              <CreatePost/>
+              <AllPosts />
+            </div>
+            <div className="right-container">
             </div>
           </div>
           ) : (

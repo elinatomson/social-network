@@ -13,6 +13,8 @@ type UserData struct {
 	Nickname    string `json:"nickname"`
 	AboutMe     string `json:"about_me"`
 	Public      bool   `json:"public"`
+	CurrentUser bool   `json:"currentUser"`
+	Online      bool   `json:"online"`
 }
 
 type FollowRequest struct {
@@ -51,4 +53,12 @@ type Session struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Cookie    string `json:"cookie"`
+}
+
+type Message struct {
+	MessageID     int
+	Message       string    `json:"message"`
+	FirstNameFrom string    `json:"first_name_from"`
+	FirstNameTo   string    `json:"first_name_to"`
+	Date          time.Time `json:"date"`
 }

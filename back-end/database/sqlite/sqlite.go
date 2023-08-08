@@ -170,6 +170,40 @@ func (m *SqliteDB) SearchUsers(query string) ([]models.UserData, error) {
 	return users, nil
 }
 
+func (m *SqliteDB) GetUsers() ([]models.UserData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT users.user_id, users.email, users.first_name, users.last_name,(CASE WHEN sessions.email IS NULL THEN FALSE ELSE TRUE END) AS online
+		FROM users LEFT JOIN sessions ON users.email = sessions.email`
+
+	rows, err := m.DB.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []models.UserData
+
+	for rows.Next() {
+		var userID int
+		var email, firstName, lastName string
+		var online bool
+		err = rows.Scan(&userID, &email, &firstName, &lastName, &online)
+		if err != nil {
+			return nil, err
+		}
+		user := models.UserData{
+			UserID:    userID,
+			Email:     email,
+			FirstName: firstName,
+			LastName:  lastName,
+			Online:    online,
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
 func (m *SqliteDB) GetUser(id int) (*models.UserData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -558,4 +592,42 @@ func (m *SqliteDB) DeclineFollower(userID, followerID int) error {
 	}
 
 	return nil
+}
+
+func (m *SqliteDB) AddMessage(firstNameFrom, firstNameTo string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO messages (message, first_name_from, first_name_to, date) VALUES (?, ?, ?, ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, firstNameFrom, firstNameTo)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) GetMessage(firstNameFrom, firstNameTo string) ([]models.Message, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT message, nicknamefrom, nicknameto, date FROM messages WHERE (nicknameto = ? AND nicknamefrom = ?) OR (nicknameto = ? AND nicknamefrom = ?)`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, firstNameTo, firstNameFrom, firstNameFrom, firstNameTo)
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []models.Message
+	for rows.Next() {
+		var msg models.Message
+		err := rows.Scan(&msg.Message, &msg.FirstNameFrom, &msg.FirstNameTo, &msg.Date)
+		if err != nil {
+			return nil, err
+		}
+
+		messages = append(messages, msg)
+	}
+	return messages, nil
 }
