@@ -4,6 +4,7 @@ import (
 	"back-end/models"
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -594,14 +595,73 @@ func (m *SqliteDB) DeclineFollower(userID, followerID int) error {
 	return nil
 }
 
-func (m *SqliteDB) AddMessage(firstNameFrom, firstNameTo string) error {
+func (m *SqliteDB) CreateGroup(group *models.Group) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO groups (title, description, user_id, first_name, last_name, selected_user_id) VALUES (?, ?, ?, ?, ?, ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, group.Title, group.Description, group.UserID, group.FirstName, group.LastName, group.SelectedUserID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) AllGroups() ([]models.Group, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT group_id, title, description, user_id, first_name, last_name, selected_user_id FROM groups`
+
+	rows, err := m.DB.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+
+	var groups []models.Group
+	for rows.Next() {
+		var group models.Group
+		err := rows.Scan(&group.GroupID, &group.Title, &group.Description, &group.UserID, &group.FirstName, &group.LastName, &group.SelectedUserID)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+	return groups, nil
+}
+
+func (m *SqliteDB) GetGroup(id int) (*models.Group, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT group_id, title, description, user_id, first_name, last_name, selected_user_id FROM groups WHERE group_id = $1`
+
+	row := m.DB.QueryRowContext(ctx, stmt, id)
+
+	var group models.Group
+
+	err := row.Scan(
+		&group.GroupID, &group.Title, &group.Description, &group.UserID, &group.FirstName, &group.LastName, &group.SelectedUserID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &group, nil
+}
+
+func (m *SqliteDB) AddMessage(message, firstNameFrom, firstNameTo string, date time.Time) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	stmt := `INSERT INTO messages (message, first_name_from, first_name_to, date) VALUES (?, ?, ?, ?)`
 
-	_, err := m.DB.ExecContext(ctx, stmt, firstNameFrom, firstNameTo)
+	_, err := m.DB.ExecContext(ctx, stmt, message, firstNameFrom, firstNameTo, date)
 	if err != nil {
+		fmt.Println("Error inserting message:", err)
 		return err
 	}
 
@@ -612,7 +672,7 @@ func (m *SqliteDB) GetMessage(firstNameFrom, firstNameTo string) ([]models.Messa
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT message, nicknamefrom, nicknameto, date FROM messages WHERE (nicknameto = ? AND nicknamefrom = ?) OR (nicknameto = ? AND nicknamefrom = ?)`
+	stmt := `SELECT message, first_name_from, first_name_to, date FROM messages WHERE (first_name_to = ? AND first_name_from = ?) OR (first_name_from = ? AND first_name_to = ?)`
 
 	rows, err := m.DB.QueryContext(ctx, stmt, firstNameTo, firstNameFrom, firstNameFrom, firstNameTo)
 	if err != nil {

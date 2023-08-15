@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import CreatePost from "../components/CreatePost";
 import AllPosts from "../components/AllPosts";
 import Users from "../components/Users";
+import Groups from "../components/AllGroups";
+import CreateGroup from "../components/CreateGroup";
 
 function MainPage() {
   const navigate = useNavigate();
@@ -44,8 +46,10 @@ function MainPage() {
           <div className="container">
             <div className="left-container">
               <Users />
+              <Groups />
             </div>
             <div className="middle-container">
+              <CreateGroup/>
               <CreatePost/>
               <AllPosts />
             </div>

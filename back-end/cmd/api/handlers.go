@@ -693,6 +693,81 @@ func (app *application) DeclineFollowerHandler(w http.ResponseWriter, r *http.Re
 	_ = app.writeJSON(w, http.StatusOK, response)
 }
 
+func (app *application) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/create-group" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var group models.Group
+	err := app.readJSON(w, r, &group)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	userId, _, firstName, lastName, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
+		return
+	}
+
+	group.UserID = userId
+	group.FirstName = firstName
+	group.LastName = lastName
+
+	err = app.database.CreateGroup(&group)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, group)
+}
+
+func (app *application) AllGroupsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/all-groups" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var allGroups []models.Group
+
+	allGroups, err := app.database.AllGroups()
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+	_ = app.writeJSON(w, http.StatusOK, allGroups)
+}
+
+func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/group/")
+	id1, err := strconv.Atoi(id)
+
+	group, err := app.database.GetGroup(id1)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, group)
+}
+
 func (app *application) AddMessageHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
@@ -724,14 +799,15 @@ func (app *application) AddMessageHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if message.Message != "" {
-		err = app.database.AddMessage(message.FirstNameFrom, message.FirstNameTo)
+		err = app.database.AddMessage(message.Message, message.FirstNameFrom, message.FirstNameTo, message.Date)
 		if err != nil {
-			app.errorJSON(w, fmt.Errorf("Failed to update follower status"), http.StatusInternalServerError)
+			app.errorJSON(w, fmt.Errorf("Failed to add message"), http.StatusInternalServerError)
 			return
 		}
 	}
 	_ = app.writeJSON(w, http.StatusCreated, message)
 }
+
 func (app *application) GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
@@ -743,7 +819,7 @@ func (app *application) GetMessagesHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	firstNameTo := r.URL.Query().Get("nicknameTo")
+	firstNameTo := r.URL.Query().Get("firstNameTo")
 	_, _, firstNameFrom, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the name"), http.StatusInternalServerError)
@@ -752,7 +828,7 @@ func (app *application) GetMessagesHandler(w http.ResponseWriter, r *http.Reques
 
 	messages, err := app.database.GetMessage(firstNameFrom, firstNameTo)
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Failed to update follower status"), http.StatusInternalServerError)
+		app.errorJSON(w, fmt.Errorf("Failed to get messages"), http.StatusInternalServerError)
 		return
 	}
 

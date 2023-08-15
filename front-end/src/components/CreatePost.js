@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom"
 import Search from "../components/Search";
 
 function CreatePost() {
+  const [showFields, setShowFields] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postPrivacy, setPostPrivacy] = useState("public");
   const [imageOrGif, setImageOrGif] = useState("");
@@ -35,6 +36,10 @@ function CreatePost() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImageOrGif(file);
+  };
+
+  const handleToggleFields = () => {
+    setShowFields(!showFields);
   };
 
   const handleUserSelection = (userId) => {
@@ -97,6 +102,7 @@ function CreatePost() {
           setImageOrGif("");
           setSearchResults(null);
           setSelectedUsers([]);
+          setShowFields(false);
           // Use the navigate function to redirect to the /main page and pass the post data in the state object
           navigate("/main", { state: { postContent } });
         } else {
@@ -115,54 +121,55 @@ function CreatePost() {
 
   return (
     <div className="posting">
-      <form onSubmit={handleSubmit}>
-        <input className="content" placeholder="Post something..." value={postContent} onChange={handleContentChange} name="content"></input>
-        {errors.includes("content") && (
-          <p className="alert">Please fill in the input field.</p>
-        )}
-        <div className="container1">
-            <div className="left-container2">
-                <label htmlFor="privacy"></label>
-                <select className="privacy" name="privacy" value={postPrivacy} onChange={handlePrivacyChange} required>
-                    <option value="public">Public</option>
-                    <option value="private">Private</option>
-                    <option value="for-selected-users">For selected users</option>
-                </select>
-                <div className="post-search">
-                {postPrivacy === "for-selected-users" && (
-                  <Search setSearchResults={setSearchResults} />
-                )}
-                <div className="search-results">
-                  {searchResults !== null && searchResults.length > 0 && (
-                    searchResults.map((result) => (
-                      <div key={result.user_id} className="search-result-item">
-                          <label htmlFor="selected_user_id"></label>
-                          <input
-                          type="checkbox"
-                          name="selected_user_id"
-                          value={result.user_id}
-                          onChange={() => handleUserSelection(result.user_id)}
-                          checked={selectedUsers.includes(result.user_id)}
-                          />
-                        {result.first_name} {result.last_name}
-                      </div>
-                    ))
+      <h2 className="center" onClick={handleToggleFields}>New post</h2>
+      {showFields && (
+        <form className="login-form" onSubmit={handleSubmit}>
+          <input placeholder="Post something..." value={postContent} onChange={handleContentChange} name="content"></input>
+          {errors.includes("content") && (
+            <p className="alert">Please fill in the input field.</p>
+          )}
+          <div className="container">
+              <div className="left-container2">
+                  <label htmlFor="privacy"></label>
+                  <select className="privacy" name="privacy" value={postPrivacy} onChange={handlePrivacyChange} required>
+                      <option value="public">Public</option>
+                      <option value="private">Private</option>
+                      <option value="for-selected-users">For selected users</option>
+                  </select>
+                  <div className="post-search">
+                  {postPrivacy === "for-selected-users" && (
+                    <Search setSearchResults={setSearchResults} />
                   )}
-                  {searchResults !== null && searchResults.length === 0 && (
-                  <p>No results found for your search query.</p>
-                )}
-                </div>
-                </div>
-            </div>
-            <div className="right-container1">
-                <label htmlFor="image"></label>
-                <input className="insert" type="file" name="image" accept="image/*, .gif" value={imageOrGif} onChange={handleImageChange}/>
-            </div>
-        </div>
-        <div>
-            <button className="button" type="submit">Create Post</button>
-        </div>
-      </form>
+                  <div className="search-results">
+                    {searchResults !== null && searchResults.length > 0 && (
+                      searchResults.map((result) => (
+                        <div key={result.user_id} className="search-result-item">
+                            <label htmlFor="selected_user_id"></label>
+                            <input
+                            type="checkbox"
+                            name="selected_user_id"
+                            value={result.user_id}
+                            onChange={() => handleUserSelection(result.user_id)}
+                            checked={selectedUsers.includes(result.user_id)}
+                            />
+                          {result.first_name} {result.last_name}
+                        </div>
+                      ))
+                    )}
+                    {searchResults !== null && searchResults.length === 0 && (
+                    <p>No results found for your search query.</p>
+                  )}
+                  </div>
+                  </div>
+              </div>
+              <div className="right-container1">
+                  <label htmlFor="image"></label>
+                  <input className="insert" type="file" name="image" accept="image/*, .gif" value={imageOrGif} onChange={handleImageChange}/>
+              </div>
+          </div>
+              <button className="button" type="submit">Create Post</button>
+        </form>
+      )}
       <div id="error"></div>
     </div>
   );

@@ -60,7 +60,7 @@ function AllPosts() {
   return (
     <div>
       {sortedPosts.length === 0 ? (
-        <p>No posts found.</p>
+        <p className="nothing">No posts.</p>
       ) : (
         <div>
           {sortedPosts.map((post) => (

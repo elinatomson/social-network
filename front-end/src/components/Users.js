@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Chat from './Chat';
+import WebSocketComponent from './Websocket'; 
+import { displayErrorMessage } from "../components/ErrorMessage";
 
 function Users() {
   const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [firstNameTo, setFirstNameTo] = useState(null);
 
+  function fetchConversationHistory(user) {
+    fetch(`/messages?firstNameTo=${user.first_name}`)
+      .then(response => response.json())
+      .then(messagesData => {  
+        if (messagesData && messagesData.length > 0) {
+          setMessages(messagesData);
+        } else {
+          setMessages([]);
+        }
+      })
+      .catch(error => {
+        displayErrorMessage('An error occurred while displaying messages: ' + error.message);
+      });
+  }
 
   useEffect(() => {
     fetch('/users')
@@ -22,10 +38,11 @@ function Users() {
     }, []);
 
     const handleUserClick = (user) => {
-        if (selectedUser === user) {
-          setSelectedUser(null); 
+        if (firstNameTo === user) {
+            setFirstNameTo(null); 
         } else {
-          setSelectedUser(user);
+            setFirstNameTo(user);
+            fetchConversationHistory(user);
         }
     };
 
@@ -38,7 +55,7 @@ function Users() {
             <div className="user">
             {users.map((user) => (
                 <div key={user.user_id}>
-                    <Link className="link" onClick={() => handleUserClick(user)}>
+                    <Link className={`user ${user.online ? 'online' : 'offline'}`} onClick={() => handleUserClick(user)}>
                     {user.first_name} {user.last_name}
                     </Link>
                 </div>
@@ -46,7 +63,7 @@ function Users() {
             </div>
         )}
         <div className="chat">
-            {selectedUser && <Chat selectedUser={selectedUser} />}
+            {firstNameTo && <WebSocketComponent firstNameTo={firstNameTo} conversationHistory={messages}/>}
         </div>
     </div>
   );

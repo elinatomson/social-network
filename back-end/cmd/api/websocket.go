@@ -44,6 +44,7 @@ func (app *application) WebsocketHandler(w http.ResponseWriter, r *http.Request)
 			log.Println("Failed to read message:", err)
 			break
 		}
+		fmt.Print(message)
 		//It then unmarshals the received message into a Message struct, which includes the recipient user's nickname.
 		var msg models.Message
 		err = json.Unmarshal(message, &msg)
@@ -74,9 +75,18 @@ func (app *application) handleMessage(r *http.Request, w http.ResponseWriter, re
 	mutex.Lock()
 	senderConn, senderFound := connections[senderFirstName]
 	mutex.Unlock()
+
+	chatMessage := models.Message{
+		Type:          "chat",
+		Message:       message.Message,
+		FirstNameFrom: senderFirstName,
+		FirstNameTo:   receiverFirstName,
+		Date:          message.Date,
+	}
+
 	if recipientFound {
 		// Send the message to the recipient user's WebSocket connection
-		data, err := json.Marshal(message)
+		data, err := json.Marshal(chatMessage)
 		if err != nil {
 			log.Println("Failed to marshal message:", err)
 			return
@@ -85,12 +95,13 @@ func (app *application) handleMessage(r *http.Request, w http.ResponseWriter, re
 		if err != nil {
 			log.Println("Failed to write message to recipient:", err)
 		}
+		fmt.Print(err)
 	} else {
 		log.Println("No active WebSocket connection found for recipient:", receiverFirstName)
 	}
 	if senderFound {
 		// Send the message to the sender's WebSocket connection
-		data, err := json.Marshal(message)
+		data, err := json.Marshal(chatMessage)
 		if err != nil {
 			log.Println("Failed to marshal message:", err)
 			return

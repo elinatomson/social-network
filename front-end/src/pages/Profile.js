@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { displayErrorMessage } from "../components/ErrorMessage";
 import Header from '../components/Header';
 import Footer from "../components/Footer";
 import Email from './../images/email.PNG';
 import DOB from './../images/dob.PNG';
 import About from './../images/about.PNG';
-import Avatar from './../images/avatar.PNG';
 import CreateComment from "../components/CreateComment";
 import Following from "../components/Following";
 import Followers from "../components/Followers";

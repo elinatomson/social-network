@@ -57,8 +57,19 @@ type Session struct {
 
 type Message struct {
 	MessageID     int
+	Type          string    `json:"type"`
 	Message       string    `json:"message"`
 	FirstNameFrom string    `json:"first_name_from"`
 	FirstNameTo   string    `json:"first_name_to"`
 	Date          time.Time `json:"date"`
+}
+
+type Group struct {
+	GroupID        int    `json:"group_id"`
+	Title          string `json:"title"`
+	Description    string `json:"description"`
+	UserID         int    `json:"user_id"`
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
+	SelectedUserID string `json:"selected_user_id"`
 }

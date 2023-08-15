@@ -10,6 +10,7 @@ import Login from "./pages/Login"
 import Logout from "./pages/Logout"
 import Profile from "./pages/Profile"
 import User from "./pages/User"
+import Group from "./pages/Group"
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
   {
     path: "/profile",
     element: <Profile />,
+  },
+  {
+    path: "/group/:groupId",
+    element: <Group />,
   },
   {
     path: "/logout",
