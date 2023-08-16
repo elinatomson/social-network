@@ -759,13 +759,29 @@ func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/group/")
 	id1, err := strconv.Atoi(id)
 
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
+		return
+	}
+
 	group, err := app.database.GetGroup(id1)
 	if err != nil {
 		app.errorJSON(w, err)
 		return
 	}
 
-	_ = app.writeJSON(w, http.StatusOK, group)
+	type GroupResponse struct {
+		UserID int           `json:"userID"`
+		Group  *models.Group `json:"group"`
+	}
+
+	groupResponse := GroupResponse{
+		UserID: userID,
+		Group:  group,
+	}
+
+	app.writeJSON(w, http.StatusOK, groupResponse)
 }
 
 func (app *application) AddMessageHandler(w http.ResponseWriter, r *http.Request) {

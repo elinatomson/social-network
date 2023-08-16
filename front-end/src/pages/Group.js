@@ -8,6 +8,7 @@ function Group() {
   const navigate = useNavigate();
   const [groupData, setGroupData] = useState({});
   const { groupId } = useParams();
+  const [isMember, setIsMember] = useState(false);
   const token = document.cookie
   .split("; ")
   .find((row) => row.startsWith("sessionId="))
@@ -33,13 +34,17 @@ function Group() {
       })
       .then((data) => {
           setGroupData(data);
+          const currentUserID = data.userID;
+          const selectedUserIDs = data.group.selected_user_id.split(",").map(id => parseInt(id));
+          const groupCreator = data.group.user_id
+          setIsMember(selectedUserIDs.includes(currentUserID) || currentUserID === groupCreator);
       })
       .catch((error) => {
-          displayErrorMessage(`An error occured while displaying user: ${error.message}`);
+          displayErrorMessage(`An error occured while displaying group: ${error.message}`);
       });
     }
   }, [navigate, groupId, token]);
-
+          console.log(groupData)
   return (
       <div className="app-container">
           <Header />
@@ -48,18 +53,25 @@ function Group() {
             <div id="error" className="alert"></div>
               <div className="container">
                 <div className="left-container">
+                  {isMember && (
                     <div className="users">
+                        <div className="following">Group creator</div>
+                        {groupData.group.first_name} {groupData.group.last_name}
                         <div className="following">Group members</div>
-                        {groupData.selected_user_id}
+                        {groupData.group.selected_user_id}
                     </div>
+                  )}
                 </div>
                 <div className="middle-container">
                     <div className="activity">
-                        {groupData.title}
+                      {groupData.group && groupData.group.title}
                     </div>
                     <div className="nothing">
-                        {groupData.description}
+                      {groupData.group && groupData.group.description}
                     </div>
+                    {!isMember && (
+                      <button className="follow-button">Request to Join</button>
+                    )}
                 </div>
                 <div className="right-container">
                 </div>
