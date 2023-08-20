@@ -73,3 +73,11 @@ type Group struct {
 	LastName       string `json:"last_name"`
 	SelectedUserID string `json:"selected_user_id"`
 }
+
+type GroupRequest struct {
+	GroupID        int    `json:"group_id"`
+	GroupTitle     string `json:"group_title"`
+	GroupCreatorID string `json:"group_creator_id"`
+	RequesterID    int    `json:"requester_id"`
+	RequestPending *bool  `json:"request_pending,omitempty"`
+}

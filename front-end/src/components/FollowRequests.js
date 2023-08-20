@@ -72,7 +72,8 @@ function FollowRequests() {
         {followRequests.length > 0 && <div className="following">Follow requests:</div>}
         <div className="user">
         {followRequests.map((user) => (
-            <div className="container" key={user.user_id}>
+          <div className="requests" key={user.user_id}>
+            <div className="container">
               <div className="left-container2">
               <Link className="link" to={`/user/${user.user_id}`}>
               {user.first_name} {user.last_name}
@@ -93,6 +94,8 @@ function FollowRequests() {
                 </div>
               </div>
             </div>
+          <hr/>
+          </div>
         ))}
         </div>
     </div>

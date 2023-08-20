@@ -653,6 +653,74 @@ func (m *SqliteDB) GetGroup(id int) (*models.Group, error) {
 	return &group, nil
 }
 
+func (m *SqliteDB) IsMember(userID, groupID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT EXISTS ( SELECT 1 FROM grouprequests WHERE requester_id = $1 AND group_id = $2)`
+
+	var isMember bool
+	row := m.DB.QueryRowContext(ctx, stmt, userID, groupID)
+	err := row.Scan(&isMember)
+	if err != nil {
+		return false, err
+	}
+
+	return isMember, nil
+}
+
+func (m *SqliteDB) JoinGroup(userID, groupID int, groupTitle string, groupCreatorID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO grouprequests (group_id, group_title, group_creator_id, requester_id, request_pending) VALUES (?, ?, ?, ?, 1)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, groupID, groupTitle, groupCreatorID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) LeaveGroup(userID, groupID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `DELETE FROM grouprequests WHERE group_id = ? AND requester_id = ?`
+
+	_, err := m.DB.ExecContext(ctx, stmt, groupID, userID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *SqliteDB) GroupRequests(userID int) ([]models.GroupRequest, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT group_id, group_title, requester_id, request_pending FROM grouprequests WHERE group_creator_id = ? AND request_pending = true`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var groupRequests []models.GroupRequest
+
+	for rows.Next() {
+		var groupRequest models.GroupRequest
+		err := rows.Scan(&groupRequest.GroupID, &groupRequest.GroupTitle, &groupRequest.RequesterID, &groupRequest.RequestPending)
+		if err != nil {
+			return nil, err
+		}
+		groupRequests = append(groupRequests, groupRequest)
+	}
+
+	return groupRequests, nil
+}
+
 func (m *SqliteDB) AddMessage(message, firstNameFrom, firstNameTo string, date time.Time) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

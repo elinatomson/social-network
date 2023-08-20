@@ -784,6 +784,107 @@ func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
 	app.writeJSON(w, http.StatusOK, groupResponse)
 }
 
+func (app *application) RequestToJoinGroupHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/request-to-join-group" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var request models.GroupRequest
+	err := app.readJSON(w, r, &request)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	group, err := app.database.GetGroup(request.GroupID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get group data"), http.StatusInternalServerError)
+		return
+	}
+
+	groupTitle := group.Title
+	groupCreatorID := group.UserID
+
+	userId, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	isMember, err := app.database.IsMember(userId, request.GroupID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to check if user is following"), http.StatusInternalServerError)
+		return
+	}
+
+	if isMember {
+		err = app.database.LeaveGroup(userId, request.GroupID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to unfollow user: %w", err), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		err = app.database.JoinGroup(userId, request.GroupID, groupTitle, groupCreatorID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to follow user: %w", err), http.StatusInternalServerError)
+			return
+		}
+	}
+	_ = app.writeJSON(w, http.StatusOK, request)
+}
+
+func (app *application) GroupRequestsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/group-requests" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		userID = 0
+		return
+	}
+
+	groupRequests, err := app.database.GroupRequests(userID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get group requests"), http.StatusInternalServerError)
+		return
+	}
+
+	type GroupRequestWithUserData struct {
+		GroupID    int              `json:"group_id"`
+		GroupTitle string           `json:"group_title"`
+		Requester  *models.UserData `json:"requester"`
+	}
+
+	var groupRequestsWithUserData []GroupRequestWithUserData
+
+	for _, request := range groupRequests {
+		user, err := app.database.GetUserByID(request.RequesterID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to get user data for requester ID: %d", request.RequesterID), http.StatusInternalServerError)
+			return
+		}
+
+		requestData := GroupRequestWithUserData{
+			GroupID:    request.GroupID,
+			GroupTitle: request.GroupTitle,
+			Requester:  user,
+		}
+
+		groupRequestsWithUserData = append(groupRequestsWithUserData, requestData)
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, groupRequestsWithUserData)
+}
+
 func (app *application) AddMessageHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)

@@ -223,7 +223,7 @@ body {
     margin-top: 2%;
   }
   
-  .button:hover, .log-out-button:hover, .custom-file-input:hover, .comment-button:hover, .profile-type-button:hover, .send-button:hover {
+  .button:hover, .log-out-button:hover, .custom-file-input:hover, .comment-button:hover, .profile-type-button:hover, .send-button:hover, .accept-button:hover, .follow-button:hover {
     background-color: #45A29E;
     color: #66FCF1;
   }
@@ -518,6 +518,10 @@ body {
   .request{
     margin-left: 30%;
     margin-bottom: 1%;
+  }
+
+  .requests{
+    font-size: 13px;
   }
 
   .chat{

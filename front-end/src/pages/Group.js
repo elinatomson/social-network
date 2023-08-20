@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { displayErrorMessage } from "../components/ErrorMessage";
 import Header from '../components/Header';
 import Footer from "../components/Footer";
+import RequestToJoinGroup from "../components/RequestToJoinGroup";
 
 function Group() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ function Group() {
       });
     }
   }, [navigate, groupId, token]);
-          console.log(groupData)
+
   return (
       <div className="app-container">
           <Header />
@@ -66,11 +67,13 @@ function Group() {
                     <div className="activity">
                       {groupData.group && groupData.group.title}
                     </div>
+                    {isMember && (
                     <div className="nothing">
                       {groupData.group && groupData.group.description}
                     </div>
+                    )}
                     {!isMember && (
-                      <button className="follow-button">Request to Join</button>
+                      <RequestToJoinGroup groupId={parseInt(groupId)} />
                     )}
                 </div>
                 <div className="right-container">
