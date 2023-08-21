@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-function GroupRequests() {
-  const [groupRequests, setGroupRequests] = useState([]);
+function GroupInvitations() {
+  const [groupInvitations, setGroupInvitations] = useState([]);
 
   useEffect(() => {
-    fetch('/group-requests')
+    fetch('/group-invitations')
         .then((response) => response.json())
         .then((data) => {
             if (data === null) {
-                setGroupRequests([]); 
+                setGroupInvitations([]); 
             } else {
-                setGroupRequests(data); 
+                setGroupInvitations(data); 
                 console.log(data)
             }
         })
@@ -20,7 +20,7 @@ function GroupRequests() {
         });
     }, []);
 
-    if (!Array.isArray(groupRequests)) {
+    if (!Array.isArray(groupInvitations)) {
       return;
     }
 
@@ -39,10 +39,10 @@ function GroupRequests() {
         headers: headers,
       }
 
-      fetch('/accept-group-request', requestOptions)
+      fetch('/accept-group-invitation', requestOptions)
         .then((response) => response.json())
         .catch((error) => {
-          console.error('Error accepting group request:', error);
+          console.error('Error accepting group invitation:', error);
       });
     }
 
@@ -70,9 +70,9 @@ function GroupRequests() {
 
   return (
     <div>
-        {groupRequests.length > 0 && <div className="following">Group requests:</div>}
+        {groupInvitations.length > 0 && <div className="following">Group invitations:</div>}
         <div className="user">
-        {groupRequests.map((user, index) => (
+        {groupInvitations.map((user, index) => (
             <div className="requests" key={index}>
                 <div className="container">
                 <div className="left-container2">
@@ -81,20 +81,16 @@ function GroupRequests() {
                     {user.group_title}
                     </Link>
                     <br/>
-                    Requester:&nbsp;
-                    <Link className="link" to={`/user/${user.requester.user_id}`}>
-                    {user.requester.first_name} {user.requester.last_name}
-                    </Link>
                 </div>
                 <div className="right-container1">
                     <div className="container">
                     <div className="left-container2">
-                        <button className="accept-button" onClick={() => handleAccept(user.group_id, user.requester.user_id)}>
+                        <button className="accept-button" onClick={() => handleAccept(user.group_id, user.invited_user.user_id)}>
                         Accept
                         </button>
                     </div>
                     <div className="right-container1">
-                        <button className="accept-button" onClick={() => handleDecline(user.group_id, user.requester.user_id)}>
+                        <button className="accept-button" onClick={() => handleDecline(user.group_id, user.invited_user.user_id)}>
                         Decline
                         </button>
                     </div>
@@ -109,4 +105,4 @@ function GroupRequests() {
   );
 }
 
-export default GroupRequests;
+export default GroupInvitations;

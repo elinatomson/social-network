@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { displayErrorMessage } from "../components/ErrorMessage";
 import Header from '../components/Header';
 import Footer from "../components/Footer";
 import RequestToJoinGroup from "../components/RequestToJoinGroup";
+import InviteNewMember from '../components/InviteNewMember';
 
 function Group() {
   const navigate = useNavigate();
   const [groupData, setGroupData] = useState({});
   const { groupId } = useParams();
   const [isMember, setIsMember] = useState(false);
+  
   const token = document.cookie
   .split("; ")
   .find((row) => row.startsWith("sessionId="))
@@ -34,11 +36,12 @@ function Group() {
         }
       })
       .then((data) => {
+        console.log(data)
           setGroupData(data);
           const currentUserID = data.userID;
-          const selectedUserIDs = data.group.selected_user_id.split(",").map(id => parseInt(id));
-          const groupCreator = data.group.user_id
-          setIsMember(selectedUserIDs.includes(currentUserID) || currentUserID === groupCreator);
+          const groupMembers = data.group_members || [];
+          const groupCreator = data.group.user_id;
+          setIsMember(groupMembers.includes(currentUserID) || currentUserID === groupCreator);
       })
       .catch((error) => {
           displayErrorMessage(`An error occured while displaying group: ${error.message}`);
@@ -56,10 +59,27 @@ function Group() {
                 <div className="left-container">
                   {isMember && (
                     <div className="users">
-                        <div className="following">Group creator</div>
-                        {groupData.group.first_name} {groupData.group.last_name}
-                        <div className="following">Group members</div>
-                        {groupData.group.selected_user_id}
+                      <div className="following">Group creator</div>
+                      <div className="user">
+                        <Link className="link" to={`/user/${groupData.group.user_id}`}>
+                          {groupData.group.first_name} {groupData.group.last_name}
+                        </Link>
+                      </div>
+                      <div className="following">Group members</div>
+                      {groupData.userdata === null ? (
+                        <p className="user">No members.</p>
+                      ) : (
+                      <div className="user">
+                        {groupData.userdata.map((user, index) => (
+                          <div key={index}>
+                            <Link className="link" to={`/user/${user.user_id}`}>
+                              {user.first_name} {user.last_name}
+                            </Link>
+                          </div>
+                        ))}
+                      </div>
+                      )}
+                      <InviteNewMember />
                     </div>
                   )}
                 </div>

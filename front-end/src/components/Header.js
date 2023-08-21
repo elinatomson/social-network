@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Avatar from '../images/avatar.PNG';
 import FollowRequests from "../components/FollowRequests";
 import GroupRequests from "../components/GroupRequests";
+import GroupInvitations from "../components/GroupInvitations";
 import Search from "../components/Search";
 
 function Header() {
@@ -31,6 +32,7 @@ function Header() {
                     <div className="request">
                         <FollowRequests />
                         <GroupRequests />
+                        <GroupInvitations />
                     </div>
                     <div className="avatar">
                         <img

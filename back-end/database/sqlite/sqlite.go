@@ -595,18 +595,25 @@ func (m *SqliteDB) DeclineFollower(userID, followerID int) error {
 	return nil
 }
 
-func (m *SqliteDB) CreateGroup(group *models.Group) error {
+func (m *SqliteDB) CreateGroup(group *models.Group) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	stmt := `INSERT INTO groups (title, description, user_id, first_name, last_name, selected_user_id) VALUES (?, ?, ?, ?, ?, ?)`
 
-	_, err := m.DB.ExecContext(ctx, stmt, group.Title, group.Description, group.UserID, group.FirstName, group.LastName, group.SelectedUserID)
+	result, err := m.DB.ExecContext(ctx, stmt, group.Title, group.Description, group.UserID, group.FirstName, group.LastName, group.SelectedUserID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	// Retrieve the last inserted ID
+	groupID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	// Return the generated GroupID
+	return int(groupID), nil
 }
 
 func (m *SqliteDB) AllGroups() ([]models.Group, error) {
@@ -653,11 +660,88 @@ func (m *SqliteDB) GetGroup(id int) (*models.Group, error) {
 	return &group, nil
 }
 
+func (m *SqliteDB) GetGroupMembers(groupID int) ([]int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT requester_id FROM groupmembers WHERE group_id = $1 AND request_pending = false AND invitation_pending = false`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	var groupMembers []int
+
+	for rows.Next() {
+		var memberID int
+		if err := rows.Scan(&memberID); err != nil {
+			return nil, err
+		}
+		groupMembers = append(groupMembers, memberID)
+	}
+
+	return groupMembers, nil
+}
+
+func (m *SqliteDB) GroupInvitations(userID int) ([]models.GroupMembers, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT group_id, group_title, group_creator_id, requester_id, invitation_pending FROM groupmembers WHERE requester_id = ? AND invitation_pending = true`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var groupInvitations []models.GroupMembers
+
+	for rows.Next() {
+		var groupInvitation models.GroupMembers
+		err := rows.Scan(&groupInvitation.GroupID, &groupInvitation.GroupTitle, &groupInvitation.GroupCreatorID, &groupInvitation.RequesterID, &groupInvitation.RequestPending)
+		if err != nil {
+			return nil, err
+		}
+		groupInvitations = append(groupInvitations, groupInvitation)
+	}
+
+	return groupInvitations, nil
+}
+
+func (m *SqliteDB) AcceptGroupInvitation(groupID, requesterID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `UPDATE groupmembers SET invitation_pending = false WHERE (group_id = ? AND requester_id = ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, groupID, requesterID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) DeclineGroupInvitation(groupID, requesterID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `DELETE FROM groupmembers WHERE (group_id = ? AND requester_id = ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, groupID, requesterID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *SqliteDB) IsMember(userID, groupID int) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT EXISTS ( SELECT 1 FROM grouprequests WHERE requester_id = $1 AND group_id = $2)`
+	stmt := `SELECT EXISTS ( SELECT 1 FROM groupmembers WHERE requester_id = $1 AND group_id = $2)`
 
 	var isMember bool
 	row := m.DB.QueryRowContext(ctx, stmt, userID, groupID)
@@ -673,9 +757,37 @@ func (m *SqliteDB) JoinGroup(userID, groupID int, groupTitle string, groupCreato
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `INSERT INTO grouprequests (group_id, group_title, group_creator_id, requester_id, request_pending) VALUES (?, ?, ?, ?, 1)`
+	stmt := `INSERT INTO groupmembers (group_id, group_title, group_creator_id, requester_id, request_pending, invitation_pending) VALUES (?, ?, ?, ?, 1, 0)`
 
 	_, err := m.DB.ExecContext(ctx, stmt, groupID, groupTitle, groupCreatorID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) AddGroupMembers(groupMember *models.GroupMembers) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO groupmembers (group_id, group_title, group_creator_id, requester_id, request_pending, invitation_pending) VALUES (?, ?, ?, ?, 0, 1)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, groupMember.GroupID, groupMember.GroupTitle, groupMember.GroupCreatorID, groupMember.RequesterID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) InviteNewMember(groupMember *models.GroupMembers) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO groupmembers (group_id, group_title, requester_id, request_pending, invitation_pending) VALUES (?, ?, ?, 0, 1)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, groupMember.GroupID, groupMember.GroupTitle, groupMember.RequesterID)
 	if err != nil {
 		return err
 	}
@@ -687,7 +799,7 @@ func (m *SqliteDB) LeaveGroup(userID, groupID int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `DELETE FROM grouprequests WHERE group_id = ? AND requester_id = ?`
+	stmt := `DELETE FROM groupmembers WHERE group_id = ? AND requester_id = ?`
 
 	_, err := m.DB.ExecContext(ctx, stmt, groupID, userID)
 	if err != nil {
@@ -696,22 +808,22 @@ func (m *SqliteDB) LeaveGroup(userID, groupID int) error {
 	return nil
 }
 
-func (m *SqliteDB) GroupRequests(userID int) ([]models.GroupRequest, error) {
+func (m *SqliteDB) GroupRequests(userID int) ([]models.GroupMembers, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT group_id, group_title, requester_id, request_pending FROM grouprequests WHERE group_creator_id = ? AND request_pending = true`
+	stmt := `SELECT group_id, group_title, group_creator_id, requester_id, request_pending FROM groupmembers WHERE group_creator_id = ? AND request_pending = true`
 
 	rows, err := m.DB.QueryContext(ctx, stmt, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var groupRequests []models.GroupRequest
+	var groupRequests []models.GroupMembers
 
 	for rows.Next() {
-		var groupRequest models.GroupRequest
-		err := rows.Scan(&groupRequest.GroupID, &groupRequest.GroupTitle, &groupRequest.RequesterID, &groupRequest.RequestPending)
+		var groupRequest models.GroupMembers
+		err := rows.Scan(&groupRequest.GroupID, &groupRequest.GroupTitle, &groupRequest.GroupCreatorID, &groupRequest.RequesterID, &groupRequest.RequestPending)
 		if err != nil {
 			return nil, err
 		}
@@ -719,6 +831,34 @@ func (m *SqliteDB) GroupRequests(userID int) ([]models.GroupRequest, error) {
 	}
 
 	return groupRequests, nil
+}
+
+func (m *SqliteDB) AcceptGroupRequest(groupID, requesterID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `UPDATE groupmembers SET request_pending = false WHERE (group_id = ? AND requester_id = ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, groupID, requesterID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) DeclineGroupRequest(groupID, requesterID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `DELETE FROM groupmembers WHERE (group_id = ? AND requester_id = ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, groupID, requesterID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *SqliteDB) AddMessage(message, firstNameFrom, firstNameTo string, date time.Time) error {

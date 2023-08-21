@@ -721,10 +721,37 @@ func (app *application) CreateGroupHandler(w http.ResponseWriter, r *http.Reques
 	group.FirstName = firstName
 	group.LastName = lastName
 
-	err = app.database.CreateGroup(&group)
+	groupID, err := app.database.CreateGroup(&group)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
 		return
+	}
+
+	var selectedUserIDs []string
+
+	if len(group.SelectedUserID) > 0 {
+		selectedUserIDs = strings.Split(group.SelectedUserID, ",")
+	}
+
+	// Add selected users to the grouprequests table
+	for _, userIDStr := range selectedUserIDs {
+		userID, err := strconv.Atoi(userIDStr)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error converting string to int"), http.StatusInternalServerError)
+			continue
+		}
+		groupMembers := models.GroupMembers{
+			GroupID:        groupID,
+			GroupTitle:     group.Title,
+			GroupCreatorID: group.UserID,
+			RequesterID:    userID,
+		}
+
+		err = app.database.AddGroupMembers(&groupMembers)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, group)
@@ -771,17 +798,184 @@ func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	groupMembers, err := app.database.GetGroupMembers(id1)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	var usersData []*models.UserData
+	for _, memberID := range groupMembers {
+		user, err := app.database.GetUserByID(memberID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to get user data"), http.StatusInternalServerError)
+			return
+		}
+		usersData = append(usersData, user)
+	}
+
 	type GroupResponse struct {
-		UserID int           `json:"userID"`
-		Group  *models.Group `json:"group"`
+		UserID       int                `json:"userID"`
+		Group        *models.Group      `json:"group"`
+		GroupMembers []int              `json:"group_members"`
+		UserData     []*models.UserData `json:"userdata"`
 	}
 
 	groupResponse := GroupResponse{
-		UserID: userID,
-		Group:  group,
+		UserID:       userID,
+		Group:        group,
+		GroupMembers: groupMembers,
+		UserData:     usersData,
 	}
 
 	app.writeJSON(w, http.StatusOK, groupResponse)
+}
+
+func (app *application) InviteNewMemberHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/invite" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var group models.Group
+	err := app.readJSON(w, r, &group)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	groupID, err := app.database.CreateGroup(&group)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
+		return
+	}
+
+	var selectedUserID int
+
+	groupMembers := models.GroupMembers{
+		GroupID:        groupID,
+		GroupTitle:     group.Title,
+		GroupCreatorID: group.UserID,
+		RequesterID:    selectedUserID,
+	}
+
+	err = app.database.InviteNewMember(&groupMembers)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string{"message": "Group invitation sent"}
+	_ = app.writeJSON(w, http.StatusOK, response)
+}
+
+func (app *application) GroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/group-invitations" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		userID = 0
+		return
+	}
+
+	groupInvitations, err := app.database.GroupInvitations(userID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get group requests"), http.StatusInternalServerError)
+		return
+	}
+
+	type GroupInvitationWithUserData struct {
+		GroupID        int              `json:"group_id"`
+		GroupTitle     string           `json:"group_title"`
+		GroupCreatorID int              `json:"group_creator_id"`
+		InvitedUser    *models.UserData `json:"invited_user"`
+	}
+
+	var groupInvitationsWithUserData []GroupInvitationWithUserData
+
+	for _, invitation := range groupInvitations {
+		user, err := app.database.GetUserByID(invitation.RequesterID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to get user data"), http.StatusInternalServerError)
+			return
+		}
+
+		invitationData := GroupInvitationWithUserData{
+			GroupID:        invitation.GroupID,
+			GroupTitle:     invitation.GroupTitle,
+			GroupCreatorID: invitation.GroupCreatorID,
+			InvitedUser:    user,
+		}
+
+		groupInvitationsWithUserData = append(groupInvitationsWithUserData, invitationData)
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, groupInvitationsWithUserData)
+}
+
+func (app *application) AcceptGroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/accept-group-invitation" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var invitation models.GroupMembers
+	err := app.readJSON(w, r, &invitation)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	err = app.database.AcceptGroupInvitation(invitation.GroupID, invitation.RequesterID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to update invitation status"), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string{"message": "Group invitation accepted successfully"}
+	_ = app.writeJSON(w, http.StatusOK, response)
+}
+
+func (app *application) DeclineGroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/decline-group-invitation" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var invitation models.GroupMembers
+	err := app.readJSON(w, r, &invitation)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	err = app.database.DeclineGroupInvitation(invitation.GroupID, invitation.RequesterID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to update invitation status"), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string{"message": "Group invitation declined successfully"}
+	_ = app.writeJSON(w, http.StatusOK, response)
 }
 
 func (app *application) RequestToJoinGroupHandler(w http.ResponseWriter, r *http.Request) {
@@ -790,7 +984,7 @@ func (app *application) RequestToJoinGroupHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	var request models.GroupRequest
+	var request models.GroupMembers
 	err := app.readJSON(w, r, &request)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
@@ -859,9 +1053,10 @@ func (app *application) GroupRequestsHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	type GroupRequestWithUserData struct {
-		GroupID    int              `json:"group_id"`
-		GroupTitle string           `json:"group_title"`
-		Requester  *models.UserData `json:"requester"`
+		GroupID        int              `json:"group_id"`
+		GroupTitle     string           `json:"group_title"`
+		GroupCreatorID int              `json:"group_creator_id"`
+		Requester      *models.UserData `json:"requester"`
 	}
 
 	var groupRequestsWithUserData []GroupRequestWithUserData
@@ -874,15 +1069,72 @@ func (app *application) GroupRequestsHandler(w http.ResponseWriter, r *http.Requ
 		}
 
 		requestData := GroupRequestWithUserData{
-			GroupID:    request.GroupID,
-			GroupTitle: request.GroupTitle,
-			Requester:  user,
+			GroupID:        request.GroupID,
+			GroupTitle:     request.GroupTitle,
+			GroupCreatorID: request.GroupCreatorID,
+			Requester:      user,
 		}
 
 		groupRequestsWithUserData = append(groupRequestsWithUserData, requestData)
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, groupRequestsWithUserData)
+}
+
+func (app *application) AcceptGroupRequestHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/accept-group-request" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var request models.GroupMembers
+	err := app.readJSON(w, r, &request)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	err = app.database.AcceptGroupRequest(request.GroupID, request.RequesterID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to update request status"), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string{"message": "Group request accepted successfully"}
+	_ = app.writeJSON(w, http.StatusOK, response)
+}
+
+func (app *application) DeclineGroupRequestHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/decline-group-request" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var request models.GroupMembers
+	err := app.readJSON(w, r, &request)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	err = app.database.DeclineGroupRequest(request.GroupID, request.RequesterID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to update request status"), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string{"message": "Group request declined successfully"}
+	_ = app.writeJSON(w, http.StatusOK, response)
 }
 
 func (app *application) AddMessageHandler(w http.ResponseWriter, r *http.Request) {
