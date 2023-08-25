@@ -24,10 +24,10 @@ function GroupInvitations() {
       return;
     }
 
-    const handleAccept = (groupID, requesterID) => {
+    const handleAccept = (groupID, memberID) => {
       const requestData = {
         group_id: groupID,
-        requester_id: requesterID,
+        member_id: memberID,
         };
 
       const headers = new Headers();
@@ -46,10 +46,10 @@ function GroupInvitations() {
       });
     }
 
-      const handleDecline = (groupID, requesterID) => {
+      const handleDecline = (groupID, memberID) => {
         const requestData = {
             group_id: groupID,
-            requester_id: requesterID,
+            member_id: memberID,
           };
   
         const headers = new Headers();

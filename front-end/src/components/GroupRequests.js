@@ -24,10 +24,10 @@ function GroupRequests() {
       return;
     }
 
-    const handleAccept = (groupID, requesterID) => {
+    const handleAccept = (groupID, memberID) => {
       const requestData = {
         group_id: groupID,
-        requester_id: requesterID,
+        member_id: memberID,
         };
 
       const headers = new Headers();
@@ -46,10 +46,10 @@ function GroupRequests() {
       });
     }
 
-      const handleDecline = (groupID, requesterID) => {
+      const handleDecline = (groupID, memberID) => {
         const requestData = {
             group_id: groupID,
-            requester_id: requesterID,
+            member_id: memberID,
           };
   
         const headers = new Headers();
@@ -82,19 +82,19 @@ function GroupRequests() {
                     </Link>
                     <br/>
                     Requester:&nbsp;
-                    <Link className="link" to={`/user/${user.requester.user_id}`}>
-                    {user.requester.first_name} {user.requester.last_name}
+                    <Link className="link" to={`/user/${user.member.user_id}`}>
+                    {user.member.first_name} {user.member.last_name}
                     </Link>
                 </div>
                 <div className="right-container1">
                     <div className="container">
                     <div className="left-container2">
-                        <button className="accept-button" onClick={() => handleAccept(user.group_id, user.requester.user_id)}>
+                        <button className="accept-button" onClick={() => handleAccept(user.group_id, user.member.user_id)}>
                         Accept
                         </button>
                     </div>
                     <div className="right-container1">
-                        <button className="accept-button" onClick={() => handleDecline(user.group_id, user.requester.user_id)}>
+                        <button className="accept-button" onClick={() => handleDecline(user.group_id, user.member.user_id)}>
                         Decline
                         </button>
                     </div>

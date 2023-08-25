@@ -744,7 +744,7 @@ func (app *application) CreateGroupHandler(w http.ResponseWriter, r *http.Reques
 			GroupID:        groupID,
 			GroupTitle:     group.Title,
 			GroupCreatorID: group.UserID,
-			RequesterID:    userID,
+			MemberID:       userID,
 		}
 
 		err = app.database.AddGroupMembers(&groupMembers)
@@ -837,27 +837,21 @@ func (app *application) InviteNewMemberHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var group models.Group
-	err := app.readJSON(w, r, &group)
+	var groupMembers models.GroupMembers
+	err := app.readJSON(w, r, &groupMembers)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
 		return
 	}
 
-	groupID, err := app.database.CreateGroup(&group)
+	groupData, err := app.database.GetGroup(groupMembers.GroupID)
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
+		app.errorJSON(w, fmt.Errorf("Failed to get group data"), http.StatusInternalServerError)
 		return
 	}
 
-	var selectedUserID int
-
-	groupMembers := models.GroupMembers{
-		GroupID:        groupID,
-		GroupTitle:     group.Title,
-		GroupCreatorID: group.UserID,
-		RequesterID:    selectedUserID,
-	}
+	groupMembers.GroupTitle = groupData.Title
+	groupMembers.GroupCreatorID = groupData.UserID
 
 	err = app.database.InviteNewMember(&groupMembers)
 	if err != nil {
@@ -903,7 +897,7 @@ func (app *application) GroupInvitationHandler(w http.ResponseWriter, r *http.Re
 	var groupInvitationsWithUserData []GroupInvitationWithUserData
 
 	for _, invitation := range groupInvitations {
-		user, err := app.database.GetUserByID(invitation.RequesterID)
+		user, err := app.database.GetUserByID(invitation.MemberID)
 		if err != nil {
 			app.errorJSON(w, fmt.Errorf("Failed to get user data"), http.StatusInternalServerError)
 			return
@@ -940,7 +934,7 @@ func (app *application) AcceptGroupInvitationHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	err = app.database.AcceptGroupInvitation(invitation.GroupID, invitation.RequesterID)
+	err = app.database.AcceptGroupInvitation(invitation.GroupID, invitation.MemberID)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to update invitation status"), http.StatusInternalServerError)
 		return
@@ -968,7 +962,7 @@ func (app *application) DeclineGroupInvitationHandler(w http.ResponseWriter, r *
 		return
 	}
 
-	err = app.database.DeclineGroupInvitation(invitation.GroupID, invitation.RequesterID)
+	err = app.database.DeclineGroupInvitation(invitation.GroupID, invitation.MemberID)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to update invitation status"), http.StatusInternalServerError)
 		return
@@ -1056,15 +1050,15 @@ func (app *application) GroupRequestsHandler(w http.ResponseWriter, r *http.Requ
 		GroupID        int              `json:"group_id"`
 		GroupTitle     string           `json:"group_title"`
 		GroupCreatorID int              `json:"group_creator_id"`
-		Requester      *models.UserData `json:"requester"`
+		Member         *models.UserData `json:"member"`
 	}
 
 	var groupRequestsWithUserData []GroupRequestWithUserData
 
 	for _, request := range groupRequests {
-		user, err := app.database.GetUserByID(request.RequesterID)
+		user, err := app.database.GetUserByID(request.MemberID)
 		if err != nil {
-			app.errorJSON(w, fmt.Errorf("Failed to get user data for requester ID: %d", request.RequesterID), http.StatusInternalServerError)
+			app.errorJSON(w, fmt.Errorf("Failed to get user data for member ID: %d", request.MemberID), http.StatusInternalServerError)
 			return
 		}
 
@@ -1072,7 +1066,7 @@ func (app *application) GroupRequestsHandler(w http.ResponseWriter, r *http.Requ
 			GroupID:        request.GroupID,
 			GroupTitle:     request.GroupTitle,
 			GroupCreatorID: request.GroupCreatorID,
-			Requester:      user,
+			Member:         user,
 		}
 
 		groupRequestsWithUserData = append(groupRequestsWithUserData, requestData)
@@ -1099,7 +1093,7 @@ func (app *application) AcceptGroupRequestHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = app.database.AcceptGroupRequest(request.GroupID, request.RequesterID)
+	err = app.database.AcceptGroupRequest(request.GroupID, request.MemberID)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to update request status"), http.StatusInternalServerError)
 		return
@@ -1127,7 +1121,7 @@ func (app *application) DeclineGroupRequestHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	err = app.database.DeclineGroupRequest(request.GroupID, request.RequesterID)
+	err = app.database.DeclineGroupRequest(request.GroupID, request.MemberID)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to update request status"), http.StatusInternalServerError)
 		return

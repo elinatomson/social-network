@@ -78,7 +78,7 @@ type GroupMembers struct {
 	GroupID           int    `json:"group_id"`
 	GroupTitle        string `json:"group_title"`
 	GroupCreatorID    int    `json:"group_creator_id"`
-	RequesterID       int    `json:"requester_id"`
+	MemberID       int    `json:"member_id"`
 	RequestPending    *bool  `json:"request_pending,omitempty"`
 	InvitationPending *bool  `json:"invitation_pending,omitempty"`
 }

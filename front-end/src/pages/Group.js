@@ -79,7 +79,7 @@ function Group() {
                         ))}
                       </div>
                       )}
-                      <InviteNewMember />
+                      <InviteNewMember groupId={parseInt(groupId)} />
                     </div>
                   )}
                 </div>
