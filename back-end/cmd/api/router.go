@@ -38,6 +38,8 @@ func (app *application) routes() http.Handler {
 	mux.Handle("/group-requests", app.authRequired(http.HandlerFunc(app.GroupRequestsHandler)))
 	mux.Handle("/accept-group-request", app.authRequired(http.HandlerFunc(app.AcceptGroupRequestHandler)))
 	mux.Handle("/decline-group-request", app.authRequired(http.HandlerFunc(app.DeclineGroupRequestHandler)))
+	mux.Handle("/create-event", app.authRequired(http.HandlerFunc(app.CreateEventHandler)))
+	mux.Handle("/group-events", app.authRequired(http.HandlerFunc(app.GroupEventsHandler)))
 	mux.Handle("/ws", app.authRequired(http.HandlerFunc(app.WebsocketHandler)))
 	mux.Handle("/message", app.authRequired(http.HandlerFunc(app.AddMessageHandler)))
 	mux.Handle("/messages", app.authRequired(http.HandlerFunc(app.GetMessagesHandler)))

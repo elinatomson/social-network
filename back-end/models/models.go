@@ -83,3 +83,14 @@ type GroupMembers struct {
 	RequestPending    *bool  `json:"request_pending,omitempty"`
 	InvitationPending *bool  `json:"invitation_pending,omitempty"`
 }
+
+type Event struct {
+	EventID     int    `json:"event_id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	UserID      int    `json:"user_id"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Time        string `json:"time"`
+	GroupID     int    `json:"group_id"`
+}

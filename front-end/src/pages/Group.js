@@ -7,6 +7,8 @@ import RequestToJoinGroup from "../components/RequestToJoinGroup";
 import InviteNewMember from '../components/InviteNewMember';
 import CreatePost from "../components/CreatePost";
 import GroupPosts from "../components/GroupPosts";
+import CreateEvent from "../components/CreateEvent";
+import GroupEvents from "../components/GroupEvents";
 
 function Group() {
   const navigate = useNavigate();
@@ -97,6 +99,9 @@ function Group() {
                       <RequestToJoinGroup groupId={parseInt(groupId)} />
                     )}
                     {isMember && (
+                      <CreateEvent groupId={parseInt(groupId)} />
+                    )}
+                    {isMember && (
                       <CreatePost groupId={parseInt(groupId)} />
                     )}
                     {isMember && (
@@ -104,6 +109,14 @@ function Group() {
                     )}
                 </div>
                 <div className="right-container">
+                  {isMember && (
+                      <div >
+                        <div className="following">Upcoming events</div>
+                        <div className="user">
+                          <GroupEvents groupId={parseInt(groupId)} />
+                        </div>
+                      </div>
+                    )}
                 </div>
               </div>
           </div>

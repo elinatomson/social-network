@@ -1182,6 +1182,80 @@ func (app *application) DeclineGroupRequestHandler(w http.ResponseWriter, r *htt
 	_ = app.writeJSON(w, http.StatusOK, response)
 }
 
+func (app *application) CreateEventHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/create-event" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var event models.Event
+	err := app.readJSON(w, r, &event)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	userId, _, firstName, lastName, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
+		return
+	}
+
+	event.UserID = userId
+	event.FirstName = firstName
+	event.LastName = lastName
+
+	err = app.database.CreateEvent(&event)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, event)
+}
+
+func (app *application) GroupEventsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/group-events" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	groupId := r.URL.Query().Get("groupId")
+	groupIdInt, err := strconv.Atoi(groupId)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Invalid groupId parameter"), http.StatusBadRequest)
+		return
+	}
+
+	var allEvents []models.Event
+
+	allEvents, err = app.database.AllEvents()
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+
+	var filteredEvents []models.Event
+
+	for _, event := range allEvents {
+		if event.GroupID == groupIdInt {
+			filteredEvents = append(filteredEvents, event)
+		}
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, filteredEvents)
+}
+
 func (app *application) AddMessageHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)

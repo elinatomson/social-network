@@ -861,6 +861,43 @@ func (m *SqliteDB) DeclineGroupRequest(groupID, memberID int) error {
 	return nil
 }
 
+func (m *SqliteDB) CreateEvent(event *models.Event) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO events (title, description, user_id, first_name, last_name, time, group_id) VALUES (?, ?, ?, ?, ?, ?, ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, event.Title, event.Description, event.UserID, event.FirstName, event.LastName, event.Time, event.GroupID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) AllEvents() ([]models.Event, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT event_id, title, description, user_id, first_name, last_name, time, group_id FROM events`
+
+	rows, err := m.DB.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+
+	var events []models.Event
+	for rows.Next() {
+		var event models.Event
+		err := rows.Scan(&event.EventID, &event.Title, &event.Description, &event.UserID, &event.FirstName, &event.LastName, &event.Time, &event.GroupID)
+		if err != nil {
+			return nil, err
+		}
+		events = append(events, event)
+	}
+	return events, nil
+}
+
 func (m *SqliteDB) AddMessage(message, firstNameFrom, firstNameTo string, date time.Time) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
