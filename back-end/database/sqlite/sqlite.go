@@ -898,6 +898,136 @@ func (m *SqliteDB) AllEvents() ([]models.Event, error) {
 	return events, nil
 }
 
+func (m *SqliteDB) GetEvent(id int) (*models.Event, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT event_id, title, description, user_id, first_name, last_name, time, group_id FROM events WHERE event_id = $1`
+
+	row := m.DB.QueryRowContext(ctx, stmt, id)
+
+	var event models.Event
+
+	err := row.Scan(&event.GroupID, &event.Title, &event.Description, &event.UserID, &event.FirstName, &event.LastName, &event.Time, &event.GroupID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &event, nil
+}
+
+func (m *SqliteDB) GetParticipants(id int) ([]models.EventParticipants, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT event_id, participant_id, first_name, last_name, going FROM eventparticipants WHERE event_id = $1`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var participants []models.EventParticipants
+	for rows.Next() {
+		var participant models.EventParticipants
+		err := rows.Scan(&participant.EventID, &participant.ParticipantID, &participant.FirstName, &participant.LastName, &participant.Going)
+		if err != nil {
+			return nil, err
+		}
+		participants = append(participants, participant)
+	}
+	return participants, nil
+}
+
+func (m *SqliteDB) GoingToEvent(userID, eventID int, firstName string, lastName string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO eventparticipants (event_id, participant_id, first_name, last_name, going) VALUES (?, ?, ?, ?, 1)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, eventID, userID, firstName, lastName)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) IsGoing(userID, eventID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT EXISTS ( SELECT 1 FROM eventparticipants WHERE event_id = $1 AND participant_id = $2)`
+
+	var isGoing bool
+	row := m.DB.QueryRowContext(ctx, stmt, eventID, userID)
+	err := row.Scan(&isGoing)
+	if err != nil {
+		return false, err
+	}
+
+	return isGoing, nil
+}
+
+func (m *SqliteDB) GoingToNotGoingEvent(userID, eventID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `UPDATE eventparticipants SET going = false WHERE (event_id = ? AND participant_id = ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, eventID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) NotGoingToEvent(userID, eventID int, firstName string, lastName string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO eventparticipants (event_id, participant_id, first_name, last_name, going) VALUES (?, ?, ?, ?, 0)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, eventID, userID, firstName, lastName)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *SqliteDB) IsNotGoing(userID, eventID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT EXISTS ( SELECT 0 FROM eventparticipants WHERE event_id = $1 AND participant_id = $2)`
+
+	var NotGoing bool
+	row := m.DB.QueryRowContext(ctx, stmt, eventID, userID)
+	err := row.Scan(&NotGoing)
+	if err != nil {
+		return false, err
+	}
+
+	return NotGoing, nil
+}
+
+func (m *SqliteDB) NotGoingToGoingEvent(userID, eventID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `UPDATE eventparticipants SET going = true WHERE (event_id = ? AND participant_id = ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, eventID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *SqliteDB) AddMessage(message, firstNameFrom, firstNameTo string, date time.Time) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()

@@ -1256,6 +1256,127 @@ func (app *application) GroupEventsHandler(w http.ResponseWriter, r *http.Reques
 	_ = app.writeJSON(w, http.StatusOK, filteredEvents)
 }
 
+func (app *application) GroupEventHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/group-event/")
+	id1, err := strconv.Atoi(id)
+
+	//userID, _, _, _, err := app.database.DataFromSession(r)
+	//if err != nil {
+	//	app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
+	//	return
+	//}
+
+	event, err := app.database.GetEvent(id1)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	participants, err := app.database.GetParticipants(id1)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	response := struct {
+		Event        *models.Event              `json:"event"`
+		Participants []models.EventParticipants `json:"participants"`
+	}{
+		Event:        event,
+		Participants: participants,
+	}
+
+	app.writeJSON(w, http.StatusOK, response)
+}
+
+func (app *application) GoingHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/going" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var going models.EventParticipants
+	err := app.readJSON(w, r, &going)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	userId, _, firstName, lastName, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	isNotGoing, err := app.database.IsNotGoing(userId, going.EventID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to check if user is going"), http.StatusInternalServerError)
+		return
+	}
+
+	if isNotGoing {
+		err = app.database.NotGoingToGoingEvent(userId, going.EventID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to mark as going: %w", err), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		err = app.database.GoingToEvent(userId, going.EventID, firstName, lastName)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to mark as going: %w", err), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, going)
+}
+
+func (app *application) NotGoingHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/not-going" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	var notGoing models.EventParticipants
+	err := app.readJSON(w, r, &notGoing)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	userId, _, firstName, lastName, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	isGoing, err := app.database.IsGoing(userId, notGoing.EventID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to check if user is going"), http.StatusInternalServerError)
+		return
+	}
+
+	if isGoing {
+		err = app.database.GoingToNotGoingEvent(userId, notGoing.EventID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to mark as not going: %w", err), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		err = app.database.NotGoingToEvent(userId, notGoing.EventID, firstName, lastName)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to mark as not going: %w", err), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, notGoing)
+}
+
 func (app *application) AddMessageHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)

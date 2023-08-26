@@ -94,3 +94,11 @@ type Event struct {
 	Time        string `json:"time"`
 	GroupID     int    `json:"group_id"`
 }
+
+type EventParticipants struct {
+	EventID       int    `json:"event_id"`
+	ParticipantID int    `json:"participant_id"`
+	FirstName     string `json:"first_name"`
+	LastName      string `json:"last_name"`
+	Going         *bool  `json:"going,omitempty"`
+}

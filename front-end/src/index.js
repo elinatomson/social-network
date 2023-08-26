@@ -11,6 +11,7 @@ import Logout from "./pages/Logout"
 import Profile from "./pages/Profile"
 import User from "./pages/User"
 import Group from "./pages/Group"
+import Event from "./pages/Event"
 
 const router = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
   {
     path: "/group/:groupId",
     element: <Group />,
+  },
+  {
+    path: "/group-event/:eventId",
+    element: <Event />,
   },
   {
     path: "/logout",
