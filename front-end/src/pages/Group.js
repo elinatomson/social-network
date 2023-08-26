@@ -5,6 +5,8 @@ import Header from '../components/Header';
 import Footer from "../components/Footer";
 import RequestToJoinGroup from "../components/RequestToJoinGroup";
 import InviteNewMember from '../components/InviteNewMember';
+import CreatePost from "../components/CreatePost";
+import GroupPosts from "../components/GroupPosts";
 
 function Group() {
   const navigate = useNavigate();
@@ -36,7 +38,6 @@ function Group() {
         }
       })
       .then((data) => {
-        console.log(data)
           setGroupData(data);
           const currentUserID = data.userID;
           const groupMembers = data.group_members || [];
@@ -88,12 +89,18 @@ function Group() {
                       {groupData.group && groupData.group.title}
                     </div>
                     {isMember && (
-                    <div className="nothing">
+                    <p className="nothing">
                       {groupData.group && groupData.group.description}
-                    </div>
+                    </p>
                     )}
                     {!isMember && (
                       <RequestToJoinGroup groupId={parseInt(groupId)} />
+                    )}
+                    {isMember && (
+                      <CreatePost groupId={parseInt(groupId)} />
+                    )}
+                    {isMember && (
+                      <GroupPosts groupId={parseInt(groupId)} />
                     )}
                 </div>
                 <div className="right-container">

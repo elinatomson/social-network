@@ -254,7 +254,7 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 	var filteredPosts []models.Post
 	for i := range allPosts {
 		post := allPosts[i]
-		if post.Privacy == "public" {
+		if post.GroupID == 0 && post.Privacy == "public" {
 			filteredPosts = append(filteredPosts, post)
 		} else if post.Privacy == "for-selected-users" {
 			if post.SelectedUserID == "" {
@@ -278,7 +278,7 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 				app.errorJSON(w, fmt.Errorf("Error checking if the user is following the post author"), http.StatusInternalServerError)
 				return
 			}
-			if isFollowing {
+			if post.GroupID == 0 && isFollowing {
 				filteredPosts = append(filteredPosts, post)
 			}
 		}
@@ -373,8 +373,9 @@ func (app *application) AllPostsHandler(w http.ResponseWriter, r *http.Request) 
 
 	// Filter posts based on privacy setting
 	var filteredPosts []models.Post
+
 	for _, post := range allPosts {
-		if post.Privacy == "public" || post.UserID == userID {
+		if post.GroupID == 0 && (post.Privacy == "public" || post.UserID == userID) {
 			filteredPosts = append(filteredPosts, post)
 		} else if post.Privacy == "for-selected-users" {
 			// Splitting the comma-separated string of selected user IDs into a slice of strings
@@ -398,7 +399,7 @@ func (app *application) AllPostsHandler(w http.ResponseWriter, r *http.Request) 
 				app.errorJSON(w, fmt.Errorf("Error checking if the user is following the post author"), http.StatusInternalServerError)
 				return
 			}
-			if isFollowing {
+			if post.GroupID == 0 && isFollowing {
 				filteredPosts = append(filteredPosts, post)
 			}
 		}
@@ -829,6 +830,56 @@ func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.writeJSON(w, http.StatusOK, groupResponse)
+}
+
+func (app *application) GroupPostsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/group-posts" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	groupId := r.URL.Query().Get("groupId")
+	groupIdInt, err := strconv.Atoi(groupId)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Invalid groupId parameter"), http.StatusBadRequest)
+		return
+	}
+
+	var allPosts []models.Post
+
+	allPosts, err = app.database.AllPosts()
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+
+	// Filter posts based on privacy setting
+	var filteredPosts []models.Post
+
+	for _, post := range allPosts {
+		if post.GroupID == groupIdInt {
+			filteredPosts = append(filteredPosts, post)
+		}
+	}
+
+	//comments for each post and add them to the filtered posts
+	for i := range filteredPosts {
+		postID := filteredPosts[i].PostID
+		comments, err := app.database.GetCommentsByPostID(postID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error getting comments from the database"), http.StatusInternalServerError)
+			return
+		}
+
+		filteredPosts[i].Comments = comments
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, filteredPosts)
 }
 
 func (app *application) InviteNewMemberHandler(w http.ResponseWriter, r *http.Request) {

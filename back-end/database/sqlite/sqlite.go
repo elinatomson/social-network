@@ -253,9 +253,9 @@ func (m *SqliteDB) CreatePost(post *models.Post) error {
 
 	post.Date = time.Now()
 
-	stmt := `INSERT INTO posts (user_id, content, first_name, last_name, privacy, selected_user_id, image, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+	stmt := `INSERT INTO posts (user_id, content, first_name, last_name, privacy, selected_user_id, image, date, group_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-	_, err := m.DB.ExecContext(ctx, stmt, post.UserID, post.Content, post.FirstName, post.LastName, post.Privacy, post.SelectedUserID, post.Image, post.Date)
+	_, err := m.DB.ExecContext(ctx, stmt, post.UserID, post.Content, post.FirstName, post.LastName, post.Privacy, post.SelectedUserID, post.Image, post.Date, post.GroupID)
 	if err != nil {
 		return err
 	}
@@ -267,7 +267,7 @@ func (m *SqliteDB) AllPosts() ([]models.Post, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT post_id, user_id, content, first_name, last_name, privacy, selected_user_id, image, date FROM posts`
+	stmt := `SELECT post_id, user_id, content, first_name, last_name, privacy, selected_user_id, image, date, group_id FROM posts`
 
 	rows, err := m.DB.QueryContext(ctx, stmt)
 	if err != nil {
@@ -277,7 +277,7 @@ func (m *SqliteDB) AllPosts() ([]models.Post, error) {
 	var posts []models.Post
 	for rows.Next() {
 		var post models.Post
-		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Privacy, &post.SelectedUserID, &post.Image, &post.Date)
+		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Privacy, &post.SelectedUserID, &post.Image, &post.Date, &post.GroupID)
 		if err != nil {
 			return nil, err
 		}
@@ -290,7 +290,7 @@ func (m *SqliteDB) GetPublicPosts() ([]models.Post, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT post_id, user_id, content, first_name, last_name, image, date FROM posts WHERE privacy = 'public'`
+	stmt := `SELECT post_id, user_id, content, first_name, last_name, image, date, group_id FROM posts WHERE privacy = 'public'`
 
 	rows, err := m.DB.QueryContext(ctx, stmt)
 	if err != nil {
@@ -300,7 +300,7 @@ func (m *SqliteDB) GetPublicPosts() ([]models.Post, error) {
 	var publicPosts []models.Post
 	for rows.Next() {
 		var post models.Post
-		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Image, &post.Date)
+		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Image, &post.Date, &post.GroupID)
 		if err != nil {
 			return nil, err
 		}
@@ -314,7 +314,7 @@ func (m *SqliteDB) ProfilePosts(firstName string, lastName string) ([]models.Pos
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT post_id, content, first_name, last_name,  privacy, selected_user_id, image, date FROM posts WHERE first_name = ? AND last_name = ?`
+	stmt := `SELECT post_id, content, first_name, last_name,  privacy, selected_user_id, image, date, group_id FROM posts WHERE first_name = ? AND last_name = ?`
 
 	rows, err := m.DB.QueryContext(ctx, stmt, firstName, lastName)
 	if err != nil {
@@ -324,7 +324,7 @@ func (m *SqliteDB) ProfilePosts(firstName string, lastName string) ([]models.Pos
 	var posts []models.Post
 	for rows.Next() {
 		var post models.Post
-		err := rows.Scan(&post.PostID, &post.Content, &post.FirstName, &post.LastName, &post.Privacy, &post.SelectedUserID, &post.Image, &post.Date)
+		err := rows.Scan(&post.PostID, &post.Content, &post.FirstName, &post.LastName, &post.Privacy, &post.SelectedUserID, &post.Image, &post.Date, &post.GroupID)
 		if err != nil {
 			return nil, err
 		}
@@ -337,7 +337,7 @@ func (m *SqliteDB) GetPostsByUserID(userID int) ([]models.Post, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT post_id, user_id, content, first_name, last_name, privacy, image, date FROM posts WHERE user_id = ?`
+	stmt := `SELECT post_id, user_id, content, first_name, last_name, privacy, image, date, group_id FROM posts WHERE user_id = ?`
 
 	rows, err := m.DB.QueryContext(ctx, stmt, userID)
 	if err != nil {
@@ -347,7 +347,7 @@ func (m *SqliteDB) GetPostsByUserID(userID int) ([]models.Post, error) {
 	var posts []models.Post
 	for rows.Next() {
 		var post models.Post
-		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Privacy, &post.Image, &post.Date)
+		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Privacy, &post.Image, &post.Date, &post.GroupID)
 		if err != nil {
 			return nil, err
 		}

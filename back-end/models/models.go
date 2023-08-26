@@ -33,6 +33,7 @@ type Post struct {
 	SelectedUserID string    `json:"selected_user_id"`
 	Image          string    `json:"image"`
 	Date           time.Time `json:"date"`
+	GroupID        int       `json:"group_id"`
 	Comments       []Comment `json:"comments"`
 }
 
@@ -78,7 +79,7 @@ type GroupMembers struct {
 	GroupID           int    `json:"group_id"`
 	GroupTitle        string `json:"group_title"`
 	GroupCreatorID    int    `json:"group_creator_id"`
-	MemberID       int    `json:"member_id"`
+	MemberID          int    `json:"member_id"`
 	RequestPending    *bool  `json:"request_pending,omitempty"`
 	InvitationPending *bool  `json:"invitation_pending,omitempty"`
 }

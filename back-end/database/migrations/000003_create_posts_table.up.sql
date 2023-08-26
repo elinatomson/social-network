@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS `posts` (
     `privacy` 	    TEXT NOT NULL,
     `selected_user_id` 	    TEXT,
     `image` 	    TEXT,
-    `date` 	        DATETIME
+    `date` 	        DATETIME,
+    `group_id` 	    INTEGER
 );

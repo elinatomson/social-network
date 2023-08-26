@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { displayErrorMessage } from "./ErrorMessage";
 import CreateComment from "./CreateComment";
 
-function AllPosts() {
+function GroupPosts({ groupId }) {
   const [allPosts, setAllPosts] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
@@ -11,7 +11,7 @@ function AllPosts() {
   const { postContent } = location.state || {};
 
   useEffect(() => {
-    fetch("/all-posts")
+    fetch(`/group-posts?groupId=${groupId}`)
       .then((response) => response.json())
       .then((data) => {
         setAllPosts(data);
@@ -19,7 +19,7 @@ function AllPosts() {
       .catch((error) => {
         displayErrorMessage(`${error.message}`);
       });
-  }, [navigate, postContent]);
+  }, [groupId,navigate, postContent]);
 
   const sortedPosts = Array.isArray(allPosts)
   ? allPosts.sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -89,4 +89,4 @@ function AllPosts() {
   );
 }
 
-export default AllPosts;
+export default GroupPosts;

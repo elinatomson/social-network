@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { displayErrorMessage } from "./ErrorMessage";
 import { useNavigate } from "react-router-dom"
 import Search from "../components/Search";
 
-function CreatePost() {
+function CreatePost({ groupId }) {
   const [showFields, setShowFields] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postPrivacy, setPostPrivacy] = useState("public");
@@ -13,17 +13,6 @@ function CreatePost() {
   const [errors, setErrors] =useState([])
 
   const navigate = useNavigate();
-
-  const token = document.cookie
-  .split("; ")
-  .find((row) => row.startsWith("sessionId="))
-  ?.split("=")[1];
-
-  useEffect(() => {
-    if (!token) {
-      navigate("/login");
-    }
-  }, [token, navigate]);
 
   const handleContentChange = (e) => {
     setPostContent(e.target.value);
@@ -82,11 +71,11 @@ function CreatePost() {
     privacy: postPrivacy,
     selected_user_id: selectedUserIdString,
     image: imageOrGif,
+    group_id: groupId, 
     };
 
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
-    headers.append("Authorization", token);
 
     let requestOptions = {
       body: JSON.stringify(postData),
@@ -104,7 +93,11 @@ function CreatePost() {
           setSelectedUsers([]);
           setShowFields(false);
           // Use the navigate function to redirect to the /main page and pass the post data in the state object
-          navigate("/main", { state: { postContent } });
+          if (groupId == null) {
+            navigate(`/main`, { state: { postContent } });
+          } else {
+            navigate(`/group/${groupId}`, { state: { postContent } });
+          }
         } else {
           return response.json(); 
         }
@@ -129,6 +122,7 @@ function CreatePost() {
             <p className="alert">Please fill in the input field.</p>
           )}
           <div className="container">
+          {groupId ? null : (
               <div className="left-container2">
                   <label htmlFor="privacy"></label>
                   <select className="privacy" name="privacy" value={postPrivacy} onChange={handlePrivacyChange} required>
@@ -162,6 +156,7 @@ function CreatePost() {
                   </div>
                   </div>
               </div>
+          )}
               <div className="right-container1">
                   <label htmlFor="image"></label>
                   <input className="insert" type="file" name="image" accept="image/*, .gif" value={imageOrGif} onChange={handleImageChange}/>

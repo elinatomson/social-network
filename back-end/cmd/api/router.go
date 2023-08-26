@@ -29,6 +29,7 @@ func (app *application) routes() http.Handler {
 	mux.Handle("/create-group", app.authRequired(http.HandlerFunc(app.CreateGroupHandler)))
 	mux.Handle("/all-groups", app.authRequired(http.HandlerFunc(app.AllGroupsHandler)))
 	mux.Handle("/group/", app.authRequired(http.HandlerFunc(app.GroupHandler)))
+	mux.Handle("/group-posts", app.authRequired(http.HandlerFunc(app.GroupPostsHandler)))
 	mux.Handle("/invite", app.authRequired(http.HandlerFunc(app.InviteNewMemberHandler)))
 	mux.Handle("/group-invitations", app.authRequired(http.HandlerFunc(app.GroupInvitationHandler)))
 	mux.Handle("/accept-group-invitation", app.authRequired(http.HandlerFunc(app.AcceptGroupInvitationHandler)))
