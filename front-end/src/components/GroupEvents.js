@@ -14,7 +14,13 @@ function GroupEvents({ groupId }) {
       .then((response) => response.json())
       .then((data) => {
         if (data) {
-          setAllEvents(data);
+          //only future events
+          const futureEvents = data.filter((event) => {
+            const eventTime = new Date(event.time).getTime();
+            const currentTime = new Date().getTime();
+            return eventTime >= currentTime;
+          });
+          setAllEvents(futureEvents);
         }
       })
       .catch((error) => {
@@ -24,6 +30,7 @@ function GroupEvents({ groupId }) {
 
   return (
     <div>
+      <div id="error" className="alert"></div>
       {allEvents.length === 0 ? (
         <p>No Events.</p>
       ) : (
@@ -32,11 +39,11 @@ function GroupEvents({ groupId }) {
             <div key={event.event_id}>
               <Link className="link" to={`/group-event/${event.event_id}`}>
                 <div>
-                Event: <span>{event.title}</span>
+                  Event: <span>{event.title}</span>
                 </div>
                 <div>
-                When: <span>{event.time}</span>
-              </div>
+                  When: <span>{event.time}</span>
+                </div>
               </Link>
               <p/>
             </div>

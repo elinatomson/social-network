@@ -46,6 +46,7 @@ function AllPosts() {
   
   return (
     <div>
+      <div id="error" className="alert"></div>
       {sortedPosts.length === 0 ? (
         <p className="nothing">No posts.</p>
       ) : (

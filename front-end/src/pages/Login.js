@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom"
 import { displayErrorMessage } from "../components/ErrorMessage";
 import Footer from "../components/Footer";
@@ -9,18 +9,6 @@ function Login () {
     const [errors, setErrors] =useState([])
 
     const navigate = useNavigate();
-
-    const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("sessionId="))
-    ?.split("=")[1];
-
-    useEffect(() => {
-      if (token) {
-        navigate("/main");
-      }
-    }, [token, navigate]);
-
 
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -50,7 +38,6 @@ function Login () {
 
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
-    headers.append("Authorization", token);
 
     let requestOptions = {
       body: JSON.stringify(userData),

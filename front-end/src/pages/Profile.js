@@ -29,22 +29,30 @@ function Profile() {
           Authorization: `${token}`,
         },
       })
-        .then((response) => response.json())
-        .then((data) => {
-          setUserData(data);
-          // Read the current profile type from localStorage if available for the current user
-          const storedProfileType = localStorage.getItem(`profileType_${data.user_data.email}`); // Use user email as the key
-          // Set the initial profile type based on localStorage or user data
-          const initialProfileType = storedProfileType || (data.user_data.public ? 'Set your profile as public' : 'Set your profile as private');
-          setProfileType(initialProfileType);
-          // If the profile type was not in localStorage, then store the initial value in localStorage for the current user
-          if (!storedProfileType) {
-            localStorage.setItem(`profileType_${data.user_data.email}`, initialProfileType); // Use user email as the key
-          }
-        })
-        .catch((error) => {
-          displayErrorMessage(`${error.message}`);
+      .then((response) => {        
+        if (!response.ok) {
+        return response.json().then((data) => {
+          throw new Error(data.message);
         });
+        } else {
+          return response.json();
+        }
+      })
+      .then((data) => {
+        setUserData(data);
+        // Read the current profile type from localStorage if available for the current user
+        const storedProfileType = localStorage.getItem(`profileType_${data.user_data.email}`); // Use user email as the key
+        // Set the initial profile type based on localStorage or user data
+        const initialProfileType = storedProfileType || (data.user_data.public ? 'Set your profile as public' : 'Set your profile as private');
+        setProfileType(initialProfileType);
+        // If the profile type was not in localStorage, then store the initial value in localStorage for the current user
+        if (!storedProfileType) {
+          localStorage.setItem(`profileType_${data.user_data.email}`, initialProfileType); // Use user email as the key
+        }
+      })
+      .catch((error) => {
+        displayErrorMessage(`${error.message}`);
+      });
     }
   }, [navigate, token]);
 
@@ -150,7 +158,7 @@ function Profile() {
               </div>
             </div>
           ) : (
-            <p>Loading user data...</p>
+            <div id="error" className="alert"></div>
           )}
         </div>
       <Footer />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { displayErrorMessage } from "./ErrorMessage";
 
 function GroupRequests() {
   const [groupRequests, setGroupRequests] = useState([]);
@@ -16,12 +17,12 @@ function GroupRequests() {
             }
         })
         .catch((error) => {
-        console.error('Error fetching group requests:', error);
+          displayErrorMessage(`${error.message}`);
         });
     }, []);
 
     if (!Array.isArray(groupRequests)) {
-      return;
+      return null;
     }
 
     const handleAccept = (groupID, memberID) => {
@@ -40,9 +41,17 @@ function GroupRequests() {
       }
 
       fetch('/accept-group-request', requestOptions)
-        .then((response) => response.json())
+        .then((response) => {        
+          if (response.ok) {
+            setGroupRequests((prevRequests) =>
+              prevRequests.filter((request) => request.group_id !== groupID)
+          );
+          } else {
+            return response.json(); 
+          }
+        })
         .catch((error) => {
-          console.error('Error accepting group request:', error);
+          displayErrorMessage(`${error.message}`);
       });
     }
 
@@ -63,8 +72,13 @@ function GroupRequests() {
   
         fetch('/decline-group-request', requestOptions)
           .then((response) => response.json())
+          .then(() => {
+            setGroupRequests((prevRequests) =>
+              prevRequests.filter((request) => request.group_id !== groupID)
+            );
+          })
           .catch((error) => {
-            console.error('Error declining group request:', error);
+            displayErrorMessage(`${error.message}`);
         });
       }
 

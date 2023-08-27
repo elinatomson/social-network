@@ -47,7 +47,7 @@ function Group() {
           setIsMember(groupMembers.includes(currentUserID) || currentUserID === groupCreator);
       })
       .catch((error) => {
-          displayErrorMessage(`An error occured while displaying group: ${error.message}`);
+          displayErrorMessage(`${error.message}`);
       });
     }
   }, [navigate, groupId, token]);

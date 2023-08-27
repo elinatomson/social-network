@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { displayErrorMessage } from "./ErrorMessage";
+import { useNavigate } from "react-router-dom"
 import Search from "../components/Search";
 
 function CreateGroup() {
@@ -9,6 +10,9 @@ function CreateGroup() {
     const [searchResults, setSearchResults] = useState(null);
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [errors, setErrors] =useState([])
+    const [groupContent, setGroupContent] = useState("");
+
+    const navigate = useNavigate();
 
     const handleTitleChange = (e) => {
         setTitle(e.target.value);
@@ -76,11 +80,13 @@ function CreateGroup() {
     fetch("/create-group", requestOptions)
       .then((response) => {
         if (response.ok) {
+          setGroupContent("");
           setTitle("");
           setDescription("");
           setSearchResults(null);
           setSelectedUsers([]);
           setShowFields(false);
+          navigate(`/main`, { state: { groupContent } });
         } else {
           return response.json(); 
         }

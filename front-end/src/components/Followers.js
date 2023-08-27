@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { displayErrorMessage } from "../components/ErrorMessage";
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function Followers() {
   const [followersUsers, setFollowersUsers] = useState([]);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { followContent } = location.state || {};
 
   useEffect(() => {
     fetch('/followers')
@@ -13,13 +18,14 @@ function Followers() {
           }
       })
       .catch((error) => {
-        console.error('Error fetching following users:', error);
+        displayErrorMessage(`${error.message}`);
       });
-    }, []);
+    }, [navigate, followContent]);
 
   return (
     <div>
       <div className="following">Followers</div>
+      <div id="error" className="alert"></div>
       {followersUsers.length === 0 ? (
         <p className="user">No users.</p>
       ) : (

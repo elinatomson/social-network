@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { displayErrorMessage } from "./ErrorMessage";
+import { useNavigate } from "react-router-dom"
 
 function CreateEvent({ groupId }) {
     const [showFields, setShowFields] = useState(false);
@@ -7,17 +8,20 @@ function CreateEvent({ groupId }) {
     const [description, setDescription] = useState("");
     const [time, setTime] = useState("");
     const [errors, setErrors] =useState([])
+    const [eventContent, setEventContent] = useState("");
+
+    const navigate = useNavigate();
 
     const handleTitleChange = (e) => {
         setTitle(e.target.value);
-      };
+    };
     
     const handleDescriptionChange = (e) => {
         setDescription(e.target.value);
     };
 
     const handleTimeChange = (e) => {
-        setTime(e.target.value);
+      setTime(e.target.value);
     };
 
     const handleToggleFields = () => {
@@ -62,15 +66,15 @@ function CreateEvent({ groupId }) {
       headers: headers,
     }
 
-    console.log(requestOptions)
-
     fetch("/create-event", requestOptions)
       .then((response) => {
         if (response.ok) {
+          setEventContent("");
           setTitle("");
           setDescription("");
           setTime("");
           setShowFields(false);
+          navigate(`/group/${groupId}`, { state: { eventContent } });
         } else {
           return response.json(); 
         }
@@ -98,10 +102,11 @@ function CreateEvent({ groupId }) {
                 {errors.includes("description") && (
                     <p className="alert">Please fill in the description.</p>
                 )}
-                <input value={time} onChange={handleTimeChange} placeholder="Time" name="time" type="date"/>
+                <input value={time} onChange={handleTimeChange} placeholder="Time" name="time" type="date" min={new Date().toISOString().split('T')[0]}/>
                 {errors.includes("time") && (
                     <p className="alert">Please fill in the event time.</p>
                 )}
+                <div id="error" className="alert"></div>
                 <div id="error" className="alert"></div>
                 <button className="button" type="submit">Create event</button>
             </form>

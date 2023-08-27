@@ -281,6 +281,7 @@ body {
   .user2 {
     font-family: 'Orbitron', sans-serif;
     margin-left: 30%;
+    word-break: break-all;
   }
 
   .avatar{

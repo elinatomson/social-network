@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { displayErrorMessage } from "./ErrorMessage";
 
 function FollowRequests() {
   const [followRequests, setFollowRequests] = useState([]);
@@ -15,12 +16,12 @@ function FollowRequests() {
             }
         })
         .catch((error) => {
-        console.error('Error fetching follow requests:', error);
+          displayErrorMessage(`${error.message}`);
         });
     }, []);
 
     if (!Array.isArray(followRequests)) {
-      return;
+      return null;
     }
 
     const handleAccept = (followerID, followingID) => {
@@ -39,16 +40,24 @@ function FollowRequests() {
       }
 
       fetch('/accept-follower', requestOptions)
-        .then((response) => response.json())
+        .then((response) => {        
+          if (response.ok) {
+            setFollowRequests((prevRequests) =>
+              prevRequests.filter((user) => user.user_id !== followerID)
+          );
+          } else {
+            return response.json(); 
+          }
+        })
         .catch((error) => {
-          console.error('Error accepting follow request:', error);
+          displayErrorMessage(`${error.message}`);
       });
     }
 
       const handleDecline = (followerID, followingID) => {
         const requestData = {
-          follower_id: followerID,
-          following_id: followingID,
+            follower_id: followerID,
+            following_id: followingID,
           };
   
         const headers = new Headers();
@@ -62,14 +71,20 @@ function FollowRequests() {
   
         fetch('/decline-follower', requestOptions)
           .then((response) => response.json())
+          .then(() => {
+            setFollowRequests((prevRequests) =>
+              prevRequests.filter((user) => user.user_id !== followerID)
+            );
+          })
           .catch((error) => {
-            console.error('Error declining follow request:', error);
+            displayErrorMessage(`${error.message}`);
         });
       }
 
   return (
     <div>
         {followRequests.length > 0 && <div className="following">Follow requests:</div>}
+        <div id="error" className="alert"></div>
         <div className="user">
         {followRequests.map((user) => (
           <div className="requests" key={user.user_id}>

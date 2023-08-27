@@ -42,10 +42,10 @@ function User() {
         }
       })
       .then((data) => {
-          setUserData(data);
+        setUserData(data);
       })
       .catch((error) => {
-          displayErrorMessage(`An error occured while displaying user: ${error.message}`);
+        displayErrorMessage(`${error.message}`);
       });
     }
   }, [navigate, userId, token]);
@@ -59,7 +59,6 @@ function User() {
           <Header />
           <div className="home">
           <div>
-            <div id="error" className="alert"></div>
             {userData.user_data ? (
               <div className="container">
                 <div className="left-container">
@@ -164,7 +163,7 @@ function User() {
                 </div>
               </div>
             ) : (
-              <p>Loading user data...</p>
+              <div id="error" className="alert"></div>
             )}
           </div>
         </div>

@@ -15,14 +15,8 @@ function Register () {
     const [errors, setErrors] =useState([])
     const navigate = useNavigate()
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
       e.preventDefault();
-
-      var passwordLength = password.length >= 5 && password.length <= 50;
-      if (!passwordLength) {
-        displayErrorMessage('Password has to be 5 letters long!');
-        return;
-      }
 
       let errors = []
       let required = [
@@ -34,15 +28,26 @@ function Register () {
       ]
 
       required.forEach(function (obj) {
-        if (obj.field === "") {
+        if (obj.field === "" ) {
           errors.push(obj.name);
         }
       })
 
+      if (password.length < 5) {
+        errors.push("password");
+      }
+
+      if (aboutMe.length > 100) {
+        errors.push("about_me");
+      }
+
+      if (nickname.length > 10) {
+        errors.push("nickname");
+      }
+
       setErrors(errors)
 
       if (errors.length > 0) {
-        displayErrorMessage("Please fill in all required fields.");
         return;
       }
 
@@ -66,18 +71,18 @@ function Register () {
         headers: headers,
       }
 
-      fetch("http://localhost:8080/register", requestOptions)
+      fetch("/register", requestOptions)
       .then((response) => {
-        if (response.ok) {
-          navigate("/login");
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.message);
+          });
         } else {
-          return response.json(); 
+          return response.json();
         }
       })
-      .then((errorMessage) => {
-        if (errorMessage) {
-          displayErrorMessage(errorMessage.error); 
-        }
+      .then(() => {
+        navigate("/login");
       })
       .catch((error) => {
         displayErrorMessage(`${error.message}`);
@@ -104,7 +109,7 @@ function Register () {
                     <label htmlFor="password">Password*</label>
                     <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="********" id="password" name="password" />
                       {errors.includes("password") && (
-                        <p className="aler">Please fill in the password.</p>
+                        <p className="alert">Please fill in the password (at least 5 letters).</p>
                       )}
                     <label htmlFor="firstName">First Name*</label>
                     <input value={firstName} onChange={(e) => setFirstName(e.target.value)} type="text" placeholder="John" id="firstName" name="first_name" />
@@ -125,8 +130,14 @@ function Register () {
                     <input value={avatar} onChange={(e) => setAvatar(e.target.value)} type="url" placeholder="https://example.com/avatar.jpg" id="avatar" name="avatar" />
                     <label htmlFor="nickname">Nickname (Optional)</label>
                     <input value={nickname} onChange={(e) => setNickname(e.target.value)} type="text" placeholder="Nickname" id="nickname" name="nickname"/>
+                    {errors.includes("nickname") && (
+                        <p className="alert">Too long Nickname (make it less than 10 letters).</p>
+                      )}
                     <label htmlFor="aboutMe">About Me (Optional)</label>
                     <input value={aboutMe} onChange={(e) => setAboutMe(e.target.value)} placeholder="Something about yourself..." id="about_me" name="aboutMe"/>
+                    {errors.includes("about_me") && (
+                        <p className="alert">Too long About Me (make it less than 100 letters).</p>
+                      )}
                     <div id="error" className="alert"></div>
                     <button className="button" type="submit">Register</button>
                     <Link className="button" to="/" type="submit">Cancel</Link>

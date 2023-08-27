@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { displayErrorMessage } from "../components/ErrorMessage";
 import Header from '../components/Header';
@@ -8,44 +8,45 @@ function Event() {
     const navigate = useNavigate();
     const [eventData, setEventData] = useState({});
     const { eventId } = useParams();
-    //const [isMember, setIsMember] = useState(false);
+    const [updateEventData, setUpdateEventData] = useState(false);
     
     const token = document.cookie
     .split("; ")
     .find((row) => row.startsWith("sessionId="))
     ?.split("=")[1];
 
-    useEffect(() => {
-        if (!token) {
-        navigate("/login");
-        } else {
+    const fetchEventData = useCallback(() => {
         fetch(`/group-event/${eventId}`, {
-            headers: {
+        headers: {
             Authorization: `${token}`,
-            },
+        },
         })
         .then((response) => {
             if (!response.ok) {
             return response.json().then((data) => {
                 throw new Error(data.message);
-            })
+            });
             } else {
             return response.json();
             }
         })
         .then((data) => {
+            console.log(data);
             setEventData(data);
-            console.log(data)
-            //const currentUserID = data.userID;
-            //const groupMembers = data.group_members || [];
-            //const groupCreator = data.group.user_id;
-            //setIsMember(groupMembers.includes(currentUserID) || currentUserID === groupCreator);
         })
         .catch((error) => {
-            displayErrorMessage(`An error occured while displaying group: ${error.message}`);
+            displayErrorMessage(`${error.message}`);
         });
+    }, [eventId, token]);
+
+    useEffect(() => {
+        if (!token) {
+          navigate("/login");
+        } else {
+          fetchEventData(updateEventData);
         }
-    }, [navigate, eventId, token]);
+    }, [navigate, token, updateEventData, fetchEventData]);
+      
 
     const handleGoing = (participantID) => {
         const requestData = {
@@ -63,9 +64,12 @@ function Event() {
         }
 
         fetch('/going', requestOptions)
-            .then((response) => response.json())
-            .catch((error) => {
-                console.error('Error with going:', error);
+        .then((response) => response.json())
+        .then(() => {
+            setUpdateEventData((prev) => !prev); 
+        })
+        .catch((error) => {
+            displayErrorMessage(`${error.message}`);
         });
     }
 
@@ -85,9 +89,12 @@ function Event() {
         }
 
         fetch('/not-going', requestOptions)
-            .then((response) => response.json())
-            .catch((error) => {
-                console.error('Error with not going:', error);
+        .then((response) => response.json())
+        .then(() => {
+            setUpdateEventData((prev) => !prev); 
+        })
+        .catch((error) => {
+            displayErrorMessage(`${error.message}`);
         });
     }
 
@@ -96,6 +103,7 @@ function Event() {
         <div className="app-container">
             <Header />
             <div className="home">
+            {eventData.is_group_member ? (
             <div>
                 <div id="error" className="alert"></div>
                 <div className="container">
@@ -147,6 +155,9 @@ function Event() {
                             <p className="nothing">
                             {eventData.event.description}
                             </p>
+                            <p className="nothing">
+                            When: {eventData.event.time}
+                            </p>
                             <div className="container">
                                 <div className="left-container2">
                                     <button className="follow-button" onClick={() => handleGoing(eventData.event.event_id, eventData.event.participant_id)}>
@@ -165,6 +176,7 @@ function Event() {
                     </div>
                 </div>
             </div>
+            ) : null}
             </div>
         <Footer />
         </div>

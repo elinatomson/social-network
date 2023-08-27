@@ -47,7 +47,6 @@ function CreateComment({ postID, addNewComment }) {
           setCommentContent("");
           setImageOrGif("");
           response.json().then((createdComment) => {
-            // Construct the new comment object using the response from the server
             const newComment = {
               comment_id: createdComment.comment_id,
               first_name: createdComment.first_name,
@@ -55,7 +54,7 @@ function CreateComment({ postID, addNewComment }) {
               comment: createdComment.comment,
               date: createdComment.date,
             };
-            addNewComment(postID, newComment); // Call the function to update the state of allPosts
+            addNewComment(postID, newComment); 
           });
         } else {
           return response.json(); 
@@ -84,6 +83,7 @@ function CreateComment({ postID, addNewComment }) {
                 </>
             )}
       </form>
+      <div id="error" className="alert"></div>
     </div>
   );
 }

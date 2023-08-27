@@ -41,6 +41,22 @@ func (m *SqliteDB) Register(userData *models.UserData) error {
 	return nil
 }
 
+func (m *SqliteDB) CheckEmail(email string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT EXISTS ( SELECT email FROM users WHERE email = $1)`
+
+	var emailNotTaken bool
+	row := m.DB.QueryRowContext(ctx, stmt, email)
+	err := row.Scan(&emailNotTaken)
+	if err != nil {
+		return false, err
+	}
+
+	return emailNotTaken, nil
+}
+
 func (m *SqliteDB) Login(userData *models.UserData) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -310,13 +326,13 @@ func (m *SqliteDB) GetPublicPosts() ([]models.Post, error) {
 	return publicPosts, nil
 }
 
-func (m *SqliteDB) ProfilePosts(firstName string, lastName string) ([]models.Post, error) {
+func (m *SqliteDB) ProfilePosts(userID int) ([]models.Post, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT post_id, content, first_name, last_name,  privacy, selected_user_id, image, date, group_id FROM posts WHERE first_name = ? AND last_name = ?`
+	stmt := `SELECT post_id, user_id, content, first_name, last_name,  privacy, selected_user_id, image, date, group_id FROM posts WHERE user_id = ?`
 
-	rows, err := m.DB.QueryContext(ctx, stmt, firstName, lastName)
+	rows, err := m.DB.QueryContext(ctx, stmt, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +340,7 @@ func (m *SqliteDB) ProfilePosts(firstName string, lastName string) ([]models.Pos
 	var posts []models.Post
 	for rows.Next() {
 		var post models.Post
-		err := rows.Scan(&post.PostID, &post.Content, &post.FirstName, &post.LastName, &post.Privacy, &post.SelectedUserID, &post.Image, &post.Date, &post.GroupID)
+		err := rows.Scan(&post.PostID, &post.UserID, &post.Content, &post.FirstName, &post.LastName, &post.Privacy, &post.SelectedUserID, &post.Image, &post.Date, &post.GroupID)
 		if err != nil {
 			return nil, err
 		}
@@ -915,6 +931,22 @@ func (m *SqliteDB) GetEvent(id int) (*models.Event, error) {
 	}
 
 	return &event, nil
+}
+
+func (m *SqliteDB) CheckMembership(userID, groupID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT EXISTS ( SELECT 1 FROM groupmembers WHERE group_id = $1 AND member_id = $2 OR group_creator_id = $3)`
+
+	var isMember bool
+	row := m.DB.QueryRowContext(ctx, stmt, groupID, userID, userID)
+	err := row.Scan(&isMember)
+	if err != nil {
+		return false, err
+	}
+
+	return isMember, nil
 }
 
 func (m *SqliteDB) GetParticipants(id int) ([]models.EventParticipants, error) {

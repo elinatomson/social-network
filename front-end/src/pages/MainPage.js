@@ -3,6 +3,7 @@ import Footer from "../components/Footer"
 import Header from "../components/Header"
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { displayErrorMessage } from "../components/ErrorMessage";
 import CreatePost from "../components/CreatePost";
 import AllPosts from "../components/AllPosts";
 import Users from "../components/Users";
@@ -27,13 +28,21 @@ function MainPage() {
           Authorization: `${token}`,
         },
       })
-        .then((response) => response.json())
-        .then((data) => {
-          setUserData(data);
-        })
-        .catch((error) => {
-          console.error("Failed to fetch user data:", error);
+      .then((response) => {        
+        if (!response.ok) {
+        return response.json().then((data) => {
+          throw new Error(data.message);
         });
+        } else {
+          return response.json();
+        }
+      })
+      .then((data) => {
+        setUserData(data);
+      })
+      .catch((error) => {
+        displayErrorMessage(`${error.message}`);
+      });
     }
   }, [navigate]);
 
@@ -57,7 +66,7 @@ function MainPage() {
             </div>
           </div>
           ) : (
-            <p>Loading data...</p>
+            <div id="error" className="alert"></div>
           )}
         </div>
       </div>

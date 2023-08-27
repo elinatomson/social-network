@@ -165,7 +165,7 @@ function CreatePost({ groupId }) {
               <button className="button" type="submit">Create Post</button>
         </form>
       )}
-      <div id="error"></div>
+      <div id="error" className="alert"></div>
     </div>
   );
 }

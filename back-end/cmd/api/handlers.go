@@ -46,30 +46,20 @@ func (app *application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	stmt := `SELECT email FROM users WHERE email = ?`
-	row := app.database.DB.QueryRow(stmt, userData.Email)
-	var email string
-	err = row.Scan(&email)
-	if err != sql.ErrNoRows {
+	_, err = app.database.CheckEmail(userData.Email)
+	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Email already taken"), http.StatusConflict)
 		return
 	}
 
 	err = app.database.Register(&userData)
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
+		app.errorJSON(w, fmt.Errorf("Email already taken"), http.StatusInternalServerError)
 		return
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, userData)
-}
 
-type appError struct {
-	message string
-}
-
-func (e *appError) Error() string {
-	return e.message
 }
 
 func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -92,19 +82,18 @@ func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = app.database.Login(&userData)
 	if err != nil {
-		app.errorJSON(w, &appError{message: "Email or password is not correct!"}, http.StatusUnauthorized)
+		app.errorJSON(w, fmt.Errorf("Email or password is not correct!"), http.StatusUnauthorized)
 		return
+	} else {
+		userId, email, firstName, lastName, err := app.database.DataFromUserData(&userData)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error getting data from user data"), http.StatusInternalServerError)
+			return
+		}
+		cookieValue := app.addCookie(w, userId, email, firstName, lastName)
+
+		app.writeJSON(w, http.StatusOK, map[string]string{"session": cookieValue})
 	}
-
-	userId, email, firstName, lastName, err := app.database.DataFromUserData(&userData)
-	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Error getting data from user data"), http.StatusInternalServerError)
-		return
-	}
-
-	cookieValue := app.addCookie(w, userId, email, firstName, lastName)
-
-	app.writeJSON(w, http.StatusOK, map[string]string{"session": cookieValue})
 }
 
 func (app *application) LogOutHandler(w http.ResponseWriter, r *http.Request) {
@@ -123,20 +112,19 @@ func (app *application) ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, email, firstName, lastName, err := app.database.DataFromSession(r)
+	userID, email, _, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the email"), http.StatusInternalServerError)
 		return
 	}
 
-	// Query the database to retrieve the user data based on the his email
 	userData, err := app.database.GetUserDataByEmail(email)
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Failed to fetch user data"), http.StatusInternalServerError)
+		app.errorJSON(w, fmt.Errorf("Failed to get user data"), http.StatusInternalServerError)
 		return
 	}
 
-	allPosts, err := app.database.ProfilePosts(firstName, lastName)
+	allPosts, err := app.database.ProfilePosts(userID)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
 		return
@@ -178,7 +166,7 @@ func (app *application) MainPageHandler(w http.ResponseWriter, r *http.Request) 
 
 	userData, err := app.database.GetUserDataByEmail(email)
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Failed to fetch user data"), http.StatusInternalServerError)
+		app.errorJSON(w, fmt.Errorf("Failed to get user data"), http.StatusInternalServerError)
 		return
 	}
 
@@ -235,13 +223,13 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 
 	user, err := app.database.GetUser(id1)
 	if err != nil {
-		app.errorJSON(w, err)
+		app.errorJSON(w, fmt.Errorf("Error getting user from the database"), http.StatusInternalServerError)
 		return
 	}
 
 	allPosts, err := app.database.GetPostsByUserID(user.UserID)
 	if err != nil {
-		app.errorJSON(w, err)
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
 		return
 	}
 
@@ -795,13 +783,13 @@ func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
 
 	group, err := app.database.GetGroup(id1)
 	if err != nil {
-		app.errorJSON(w, err)
+		app.errorJSON(w, fmt.Errorf("Error getting group data from database"), http.StatusInternalServerError)
 		return
 	}
 
 	groupMembers, err := app.database.GetGroupMembers(id1)
 	if err != nil {
-		app.errorJSON(w, err)
+		app.errorJSON(w, fmt.Errorf("Error getting group members from database"), http.StatusInternalServerError)
 		return
 	}
 
@@ -1264,13 +1252,19 @@ func (app *application) GroupEventHandler(w http.ResponseWriter, r *http.Request
 	id := strings.TrimPrefix(r.URL.Path, "/group-event/")
 	id1, err := strconv.Atoi(id)
 
-	//userID, _, _, _, err := app.database.DataFromSession(r)
-	//if err != nil {
-	//	app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
-	//	return
-	//}
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
+		return
+	}
 
 	event, err := app.database.GetEvent(id1)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	isGroupMember, err := app.database.CheckMembership(userID, event.GroupID)
 	if err != nil {
 		app.errorJSON(w, err)
 		return
@@ -1283,11 +1277,13 @@ func (app *application) GroupEventHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	response := struct {
-		Event        *models.Event              `json:"event"`
-		Participants []models.EventParticipants `json:"participants"`
+		IsGroupMember bool                       `json:"is_group_member"`
+		Event         *models.Event              `json:"event"`
+		Participants  []models.EventParticipants `json:"participants"`
 	}{
-		Event:        event,
-		Participants: participants,
+		IsGroupMember: isGroupMember,
+		Event:         event,
+		Participants:  participants,
 	}
 
 	app.writeJSON(w, http.StatusOK, response)

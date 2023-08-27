@@ -1,10 +1,15 @@
 import { displayErrorMessage } from "../components/ErrorMessage";
+import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 
 function Follow ({ userData, userId }) {
+    const [followContent, setFollowContent] = useState("");
+    const navigate = useNavigate();
+
     const handleFollowUnfollow = () => {
         const followData = {
-        following_id: userId, 
-        request_pending: userData,
+            following_id: userId, 
+            request_pending: userData,
         };
 
         const headers = new Headers();
@@ -18,19 +23,15 @@ function Follow ({ userData, userId }) {
 
         fetch('/follow', requestOptions)
         .then((response) => {
-        if (!response.ok) {
-            return response.json().then((data) => {
-            throw new Error(data.message);
-            })
-        } else {
-            return response.json();
-        }
-        })
-        .then((data) => {
-        console.log(data)
+            if (response.ok) {
+                setFollowContent("");
+                navigate(`/user/${userId}`, { state: { followContent } });
+            } else {
+                return response.json();
+            }
         })
         .catch((error) => {
-        displayErrorMessage(`An error occured while trying to follow this user: ${error.message}`);
+            displayErrorMessage(`${error.message}`);
         });
     };
 
