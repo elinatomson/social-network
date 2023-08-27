@@ -13,9 +13,9 @@ function Followers() {
     fetch('/followers')
       .then((response) => response.json())
       .then((data) => {
-        if (data && data.followers_users) {
-            setFollowersUsers(data.followers_users);
-          }
+        if (data) {
+          setFollowersUsers(data);
+        }
       })
       .catch((error) => {
         displayErrorMessage(`${error.message}`);

@@ -14,8 +14,9 @@ function Following() {
     fetch('/following')
       .then((response) => response.json())
       .then((data) => {
-        if (data && data.following_users) {
-            setFollowingUsers(data.following_users);
+        console.log(data)
+        if (data) {
+            setFollowingUsers(data);
           }
       })
       .catch((error) => {

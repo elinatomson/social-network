@@ -1,18 +1,19 @@
 import { displayErrorMessage } from "../components/ErrorMessage";
+import { displayMessage } from "../components/ErrorMessage";
 
 function RequestToJoinGroup ({ groupId }) {
     const handleJoinLeaveGroup = () => {
         const requestData = {
-        group_id: groupId, 
+            group_id: groupId, 
         };
 
         const headers = new Headers();
         headers.append("Content-Type", "application/json");
 
         let requestOptions = {
-        body: JSON.stringify(requestData),
-        method: "POST",
-        headers: headers,
+            body: JSON.stringify(requestData),
+            method: "POST",
+            headers: headers,
         }
 
         fetch('/request-to-join-group', requestOptions)
@@ -26,17 +27,21 @@ function RequestToJoinGroup ({ groupId }) {
         }
         })
         .then((data) => {
-        console.log(data)
+            displayMessage(`Your request has been sent to the group owner`);
         })
         .catch((error) => {
-        displayErrorMessage(`An error occured while trying to follow this user: ${error.message}`);
+            displayErrorMessage(`${error.message}`);
         });
     };
 
     return (
-        <button className="follow-button" onClick={handleJoinLeaveGroup}>
-            Request To Join
-        </button>
+        <div>
+            <button className="follow-button" onClick={handleJoinLeaveGroup}>
+                Request To Join
+            </button>
+            <div id="message"></div>
+            <div id="error" className="alert"></div>
+        </div>
     )
 }
 

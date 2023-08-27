@@ -202,7 +202,7 @@ func (app *application) GetUsersHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	users, err := app.database.GetUsers()
-	//setting the currentUser in the users db table as a true to add the current user's nickname to the response
+	//setting the currentUser in the users db table as a true to add the current user's name to the response
 	for i := range users {
 		if users[i].FirstName == firstName && users[i].LastName == lastName {
 			users[i].CurrentUser = true
@@ -236,6 +236,12 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 	userID, _, _, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
+		return
+	}
+
+	followers, err := app.database.Followers(user.UserID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
 		return
 	}
 
@@ -285,11 +291,15 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userDataWithPosts := struct {
-		UserData *models.UserData `json:"user_data"`
-		Posts    []models.Post    `json:"posts"`
+		CurrentUser int               `json:"current_user"`
+		UserData    *models.UserData  `json:"user_data"`
+		Followers   []models.UserData `json:"followers"`
+		Posts       []models.Post     `json:"posts"`
 	}{
-		UserData: user,
-		Posts:    filteredPosts,
+		CurrentUser: userID,
+		UserData:    user,
+		Followers:   followers,
+		Posts:       filteredPosts,
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, userDataWithPosts)
@@ -359,16 +369,13 @@ func (app *application) AllPostsHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Filter posts based on privacy setting
 	var filteredPosts []models.Post
 
 	for _, post := range allPosts {
 		if post.GroupID == 0 && (post.Privacy == "public" || post.UserID == userID) {
 			filteredPosts = append(filteredPosts, post)
 		} else if post.Privacy == "for-selected-users" {
-			// Splitting the comma-separated string of selected user IDs into a slice of strings
 			selectedUserIDs := strings.Split(post.SelectedUserID, ",")
-			// Checking if the logged-in user's ID is in the selectedUserIDs slice
 			for _, user := range selectedUserIDs {
 				selectedUserID, err := strconv.Atoi(user)
 				if err != nil {
@@ -381,7 +388,6 @@ func (app *application) AllPostsHandler(w http.ResponseWriter, r *http.Request) 
 				}
 			}
 		} else {
-			// For private posts, include them only if the user is following the post's author
 			isFollowing, err := app.database.IsFollowing(userID, post.UserID)
 			if err != nil {
 				app.errorJSON(w, fmt.Errorf("Error checking if the user is following the post author"), http.StatusInternalServerError)
@@ -468,10 +474,15 @@ func (app *application) ProfileTypeHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	_ = app.writeJSON(w, http.StatusOK, map[string]string{"message": "Profile type updated successfully"})
+	_ = app.writeJSON(w, http.StatusOK, err)
 }
 
 func (app *application) FollowHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
 	if r.URL.Path != "/follow" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return
@@ -525,6 +536,11 @@ func (app *application) FollowHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) FollowingHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
 	if r.URL.Path != "/following" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return
@@ -536,22 +552,23 @@ func (app *application) FollowingHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	following, err := app.database.Following(userId)
+	var following []models.UserData
+
+	following, err = app.database.Following(userId)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the list of followed users: %w", err), http.StatusInternalServerError)
 		return
 	}
 
-	response := struct {
-		Following []models.UserData `json:"following_users"`
-	}{
-		Following: following,
-	}
-
-	_ = app.writeJSON(w, http.StatusOK, response)
+	_ = app.writeJSON(w, http.StatusOK, following)
 }
 
 func (app *application) FollowersHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
 	if r.URL.Path != "/followers" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return
@@ -563,18 +580,15 @@ func (app *application) FollowersHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	followers, err := app.database.Followers(userId)
+	var followers []models.UserData
+
+	followers, err = app.database.Followers(userId)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the list of followed users: %w", err), http.StatusInternalServerError)
 		return
 	}
-	response := struct {
-		Followers []models.UserData `json:"followers_users"`
-	}{
-		Followers: followers,
-	}
 
-	_ = app.writeJSON(w, http.StatusOK, response)
+	_ = app.writeJSON(w, http.StatusOK, followers)
 }
 
 func (app *application) FollowRequestsHandler(w http.ResponseWriter, r *http.Request) {
@@ -644,8 +658,7 @@ func (app *application) AcceptFollowerHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	response := map[string]string{"message": "Follower request accepted successfully"}
-	_ = app.writeJSON(w, http.StatusOK, response)
+	_ = app.writeJSON(w, http.StatusOK, request)
 }
 
 func (app *application) DeclineFollowerHandler(w http.ResponseWriter, r *http.Request) {
@@ -678,8 +691,7 @@ func (app *application) DeclineFollowerHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	response := map[string]string{"message": "Follower request declined successfully"}
-	_ = app.writeJSON(w, http.StatusOK, response)
+	_ = app.writeJSON(w, http.StatusOK, request)
 }
 
 func (app *application) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
@@ -722,7 +734,7 @@ func (app *application) CreateGroupHandler(w http.ResponseWriter, r *http.Reques
 		selectedUserIDs = strings.Split(group.SelectedUserID, ",")
 	}
 
-	// Add selected users to the grouprequests table
+	// Add selected users to the groupmembers table
 	for _, userIDStr := range selectedUserIDs {
 		userID, err := strconv.Atoi(userIDStr)
 		if err != nil {
@@ -846,7 +858,6 @@ func (app *application) GroupPostsHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Filter posts based on privacy setting
 	var filteredPosts []models.Post
 
 	for _, post := range allPosts {
@@ -871,6 +882,11 @@ func (app *application) GroupPostsHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) InviteNewMemberHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
 	if r.URL.Path != "/invite" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return
@@ -898,8 +914,7 @@ func (app *application) InviteNewMemberHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	response := map[string]string{"message": "Group invitation sent"}
-	_ = app.writeJSON(w, http.StatusOK, response)
+	_ = app.writeJSON(w, http.StatusOK, err)
 }
 
 func (app *application) GroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
@@ -979,8 +994,7 @@ func (app *application) AcceptGroupInvitationHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	response := map[string]string{"message": "Group invitation accepted successfully"}
-	_ = app.writeJSON(w, http.StatusOK, response)
+	_ = app.writeJSON(w, http.StatusOK, err)
 }
 
 func (app *application) DeclineGroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
@@ -1007,11 +1021,15 @@ func (app *application) DeclineGroupInvitationHandler(w http.ResponseWriter, r *
 		return
 	}
 
-	response := map[string]string{"message": "Group invitation declined successfully"}
-	_ = app.writeJSON(w, http.StatusOK, response)
+	_ = app.writeJSON(w, http.StatusOK, err)
 }
 
 func (app *application) RequestToJoinGroupHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
 	if r.URL.Path != "/request-to-join-group" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return
@@ -1138,8 +1156,7 @@ func (app *application) AcceptGroupRequestHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	response := map[string]string{"message": "Group request accepted successfully"}
-	_ = app.writeJSON(w, http.StatusOK, response)
+	_ = app.writeJSON(w, http.StatusOK, err)
 }
 
 func (app *application) DeclineGroupRequestHandler(w http.ResponseWriter, r *http.Request) {
@@ -1166,8 +1183,7 @@ func (app *application) DeclineGroupRequestHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	response := map[string]string{"message": "Group request declined successfully"}
-	_ = app.writeJSON(w, http.StatusOK, response)
+	_ = app.writeJSON(w, http.StatusOK, err)
 }
 
 func (app *application) CreateEventHandler(w http.ResponseWriter, r *http.Request) {
@@ -1290,6 +1306,11 @@ func (app *application) GroupEventHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) GoingHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
 	if r.URL.Path != "/going" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return
@@ -1332,6 +1353,11 @@ func (app *application) GoingHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) NotGoingHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
 	if r.URL.Path != "/not-going" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return

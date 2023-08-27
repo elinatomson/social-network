@@ -12,14 +12,14 @@ function GroupPosts({ groupId }) {
 
   useEffect(() => {
     fetch(`/group-posts?groupId=${groupId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setAllPosts(data);
-      })
-      .catch((error) => {
-        displayErrorMessage(`${error.message}`);
-      });
-  }, [groupId,navigate, postContent]);
+    .then((response) => response.json())
+    .then((data) => {
+      setAllPosts(data);
+    })
+    .catch((error) => {
+      displayErrorMessage(`${error.message}`);
+    });
+  }, [groupId, navigate, postContent]);
 
   const sortedPosts = Array.isArray(allPosts)
   ? allPosts.sort((a, b) => new Date(b.date) - new Date(a.date))

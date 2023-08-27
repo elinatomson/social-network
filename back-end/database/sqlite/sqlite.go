@@ -148,10 +148,7 @@ func (m *SqliteDB) GetUserDataByEmail(email string) (*models.UserData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT email, first_name, last_name, date_of_birth, avatar, nickname, about_me FROM users
-		WHERE email = $1
-		LIMIT 1
-	`
+	stmt := `SELECT email, first_name, last_name, date_of_birth, avatar, nickname, about_me FROM users WHERE email = $1 LIMIT 1`
 
 	row := m.DB.QueryRowContext(ctx, stmt, email)
 	userData := &models.UserData{}
@@ -504,11 +501,7 @@ func (m *SqliteDB) Following(userID int) ([]models.UserData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `
-		SELECT user_id, first_name, last_name FROM users
-		JOIN followers ON user_id = following_id
-		WHERE follower_id = $1 AND request_pending = false
-	`
+	stmt := `SELECT user_id, first_name, last_name FROM users JOIN followers ON user_id = following_id WHERE follower_id = $1 AND request_pending = false`
 
 	rows, err := m.DB.QueryContext(ctx, stmt, userID)
 	if err != nil {
@@ -533,11 +526,7 @@ func (m *SqliteDB) Followers(userID int) ([]models.UserData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `
-		SELECT user_id, first_name, last_name FROM users
-		JOIN followers ON user_id = follower_id
-		WHERE following_id = $1 AND request_pending = false
-	`
+	stmt := `SELECT user_id, first_name, last_name FROM users JOIN followers ON user_id = follower_id WHERE following_id = $1 AND request_pending = false`
 
 	rows, err := m.DB.QueryContext(ctx, stmt, userID)
 	if err != nil {

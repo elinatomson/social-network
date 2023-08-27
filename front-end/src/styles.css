@@ -271,6 +271,12 @@ body {
     text-align: center;
   }
 
+  .message {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    text-align: center;
+  }
+
   .user1 {
     font-family: 'Vina Sans', cursive;
     font-size: 40px;
@@ -504,6 +510,15 @@ body {
     margin-top: 5%;
     font-size: 25px;
     color:#66FCF1
+  }
+
+  .chat_users{
+    font-family: 'Vina Sans', cursive;
+    margin-top: 5%;
+    font-size: 25px;
+    color:#66FCF1;
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   .user{

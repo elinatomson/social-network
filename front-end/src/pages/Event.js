@@ -17,21 +17,20 @@ function Event() {
 
     const fetchEventData = useCallback(() => {
         fetch(`/group-event/${eventId}`, {
-        headers: {
-            Authorization: `${token}`,
-        },
+            headers: {
+                Authorization: `${token}`,
+            },
         })
         .then((response) => {
             if (!response.ok) {
-            return response.json().then((data) => {
-                throw new Error(data.message);
-            });
+                return response.json().then((data) => {
+                    throw new Error(data.message);
+                });
             } else {
-            return response.json();
+                return response.json();
             }
         })
         .then((data) => {
-            console.log(data);
             setEventData(data);
         })
         .catch((error) => {

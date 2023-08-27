@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { displayErrorMessage } from "../components/ErrorMessage";
 
 function GroupInvitations() {
   const [groupInvitations, setGroupInvitations] = useState([]);
@@ -12,16 +13,15 @@ function GroupInvitations() {
                 setGroupInvitations([]); 
             } else {
                 setGroupInvitations(data); 
-                console.log(data)
             }
         })
         .catch((error) => {
-        console.error('Error fetching group requests:', error);
+          displayErrorMessage(`${error.message}`);
         });
     }, []);
 
     if (!Array.isArray(groupInvitations)) {
-      return;
+      return null;
     }
 
     const handleAccept = (groupID, memberID) => {
@@ -40,9 +40,17 @@ function GroupInvitations() {
       }
 
       fetch('/accept-group-invitation', requestOptions)
-        .then((response) => response.json())
-        .catch((error) => {
-          console.error('Error accepting group invitation:', error);
+      .then((response) => {        
+        if (response.ok) {
+          setGroupInvitations((prevInvitation) =>
+            prevInvitation.filter((invitation) => invitation.group_id !== groupID)
+          );
+        } else {
+          return response.json(); 
+        }
+      })
+      .catch((error) => {
+        displayErrorMessage(`${error.message}`);
       });
     }
 
@@ -62,15 +70,24 @@ function GroupInvitations() {
         }
   
         fetch('/decline-group-request', requestOptions)
-          .then((response) => response.json())
-          .catch((error) => {
-            console.error('Error declining group request:', error);
+        .then((response) => {        
+          if (response.ok) {
+            setGroupInvitations((prevInvitation) =>
+              prevInvitation.filter((invitation) => invitation.group_id !== groupID)
+          );
+          } else {
+            return response.json(); 
+          }
+        })
+        .catch((error) => {
+          displayErrorMessage(`${error.message}`);
         });
       }
 
   return (
     <div>
         {groupInvitations.length > 0 && <div className="following">Group invitations:</div>}
+        <div id="error" className="alert"></div>
         <div className="user">
         {groupInvitations.map((user, index) => (
             <div className="requests" key={index}>
@@ -86,12 +103,12 @@ function GroupInvitations() {
                     <div className="container">
                     <div className="left-container2">
                         <button className="accept-button" onClick={() => handleAccept(user.group_id, user.invited_user.user_id)}>
-                        Accept
+                          Accept
                         </button>
                     </div>
                     <div className="right-container1">
                         <button className="accept-button" onClick={() => handleDecline(user.group_id, user.invited_user.user_id)}>
-                        Decline
+                          Decline
                         </button>
                     </div>
                     </div>

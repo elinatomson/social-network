@@ -17,6 +17,8 @@ function User() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({});
   const { userId } = useParams();
+  const [isFollowing, setIsFollowing] = useState(false); 
+
   const token = document.cookie
   .split("; ")
   .find((row) => row.startsWith("sessionId="))
@@ -43,6 +45,11 @@ function User() {
       })
       .then((data) => {
         setUserData(data);
+        const currentUserID = data.current_user;
+        const followers = data.followers || [];
+        const user = data.user_data.user_id;
+        const following = followers.some(follower => follower.user_id === currentUserID) || currentUserID === user;
+        setIsFollowing(following);
       })
       .catch((error) => {
         displayErrorMessage(`${error.message}`);
@@ -74,7 +81,7 @@ function User() {
                   <div className="user-user1">
                     {userData.user_data.first_name} {userData.user_data.last_name}
                   </div>
-                  {userData.user_data.public ? (
+                  {userData.user_data.public || isFollowing ? (
                     <div className="user-user2">
                       <p>
                         <img className="user-dob" src={DOB} alt="dob" />
@@ -102,7 +109,7 @@ function User() {
                   <div>
                     <Follow userData={!userData.user_data.public} userId={parseInt(userId)} />
                   </div>
-                  {userData.user_data.public ? (
+                  {userData.user_data.public || isFollowing ?  (
                     <>
                       <div className="activity">User activity</div>
                       {sortedPosts.length === 0 ? (

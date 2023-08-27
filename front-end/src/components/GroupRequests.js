@@ -13,7 +13,6 @@ function GroupRequests() {
                 setGroupRequests([]); 
             } else {
                 setGroupRequests(data); 
-                console.log(data)
             }
         })
         .catch((error) => {
@@ -29,7 +28,7 @@ function GroupRequests() {
       const requestData = {
         group_id: groupID,
         member_id: memberID,
-        };
+      };
 
       const headers = new Headers();
       headers.append("Content-Type", "application/json");

@@ -4,9 +4,14 @@ import WebSocketComponent from './Websocket';
 import { displayErrorMessage } from "../components/ErrorMessage";
 
 function Users() {
+  const [showUsers, setShowUsers] = useState(false);
   const [users, setUsers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [firstNameTo, setFirstNameTo] = useState(null);
+
+  const handleToggleUsers = () => {
+    setShowUsers(!showUsers);
+  };
 
   function fetchConversationHistory(user) {
     fetch(`/messages?firstNameTo=${user.first_name}`)
@@ -19,7 +24,7 @@ function Users() {
         }
       })
       .catch(error => {
-        displayErrorMessage('An error occurred while displaying messages: ' + error.message);
+        displayErrorMessage(`${error.message}`);
       });
   }
 
@@ -28,43 +33,49 @@ function Users() {
       .then((response) => response.json())
       .then((data) => {
         if (data) {
-            const filteredUsers = data.filter((user) => !user.currentUser);
-            setUsers(filteredUsers);
-          }
+          const filteredUsers = data.filter((user) => !user.currentUser);
+          setUsers(filteredUsers);
+        }
       })
       .catch((error) => {
-        console.error('Error fetching following users:', error);
+        displayErrorMessage(`${error.message}`);
       });
     }, []);
 
     const handleUserClick = (user) => {
         if (firstNameTo === user) {
-            setFirstNameTo(null); 
+          setFirstNameTo(null); 
         } else {
-            setFirstNameTo(user);
-            fetchConversationHistory(user);
+          setFirstNameTo(user);
+          fetchConversationHistory(user);
         }
     };
 
   return (
     <div className="users">
-        <div className="following">All Social Network users</div>
+      <div className="chat_users" onClick={handleToggleUsers}>All Social Network users for chat</div>
+      {showUsers && (
+      <div>
+        <div id="error" className="alert"></div>
         {users.length === 0 ? (
-            <p className="user">No users.</p>
+          <p className="user">No users.</p>
         ) : (
-            <div className="user">
+          <div className="user">
             {users.map((user) => (
-                <div key={user.user_id}>
-                    <Link className={`user ${user.online ? 'online' : 'offline'}`} onClick={() => handleUserClick(user)}>
-                    {user.first_name} {user.last_name}
-                    </Link>
-                </div>
+              <div key={user.user_id}>
+                <Link className={`user ${user.online ? 'online' : 'offline'}`} onClick={() => handleUserClick(user)}>
+                  {user.first_name} {user.last_name}
+                </Link>
+              </div>
             ))}
-            </div>
+          </div>
         )}
-        <div className="chat">
-            {firstNameTo && <WebSocketComponent firstNameTo={firstNameTo} conversationHistory={messages}/>}
-        </div>
+      </div>
+      )}
+
+      <div className="chat">
+        {firstNameTo && <WebSocketComponent firstNameTo={firstNameTo} conversationHistory={messages}/>}
+      </div>
     </div>
   );
 }

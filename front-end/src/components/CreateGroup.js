@@ -59,7 +59,6 @@ function CreateGroup() {
       return;
     }
 
-    // Convert the selectedUsers array to a comma-separated string
     const selectedUserIdString = selectedUsers.join(",");
     
     const groupData = {
