@@ -16,7 +16,6 @@ type application struct {
 }
 
 func main() {
-
 	var app application
 
 	conn, err := app.connectToDB()

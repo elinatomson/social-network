@@ -16,6 +16,12 @@ function Header() {
       fetch("/main")
       .then((response) => response.json())
       .then((data) => {
+        if (data.avatar) {
+          const avatarPath = `/avatars/${data.avatar}`;
+          data.avatar = avatarPath;
+        } else {
+          data.avatar = Avatar;
+        }
         setUserData(data);
       })
       .catch((error) => {
@@ -37,7 +43,7 @@ function Header() {
               <div className="avatar">
                   <img
                   className="avatar-img"
-                  src={userData.avatar ? userData.avatar : Avatar}
+                  src={userData.avatar}
                   alt="avatar"
                   />
               </div>

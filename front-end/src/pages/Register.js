@@ -9,7 +9,7 @@ function Register () {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [dateOfBirth, setDateOfBirth] = useState("");
-    const [avatar, setAvatar] = useState("");
+    const [avatar, setAvatar] = useState(null);
     const [nickname, setNickname] = useState("");
     const [aboutMe, setAboutMe] = useState("");
     const [errors, setErrors] =useState([])
@@ -51,22 +51,20 @@ function Register () {
         return;
       }
 
-      const userData = {
-          email: email,
-          password: password,
-          first_name: firstName,
-          last_name: lastName,
-          date_of_birth: dateOfBirth,
-          avatar: avatar,
-          nickname: nickname,
-          about_me: aboutMe,
-      };
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("first_name", firstName);
+      formData.append("last_name", lastName);
+      formData.append("date_of_birth", dateOfBirth);
+      formData.append("avatar", avatar); 
+      formData.append("nickname", nickname);
+      formData.append("about_me", aboutMe);
 
       const headers = new Headers()
-      headers.append("Content-Type", "application/json")
 
       let requestOptions = {
-        body: JSON.stringify(userData),
+        body: formData,
         method: "POST",
         headers: headers,
       }
@@ -127,7 +125,7 @@ function Register () {
                         <p className="alert">Please select a date of birth.</p>
                       )}
                     <label htmlFor="avatar">Avatar/Image (Optional)</label>
-                    <input value={avatar} onChange={(e) => setAvatar(e.target.value)} type="url" placeholder="https://example.com/avatar.jpg" id="avatar" name="avatar" />
+                    <input onChange={(e) => setAvatar(e.target.files[0])} type="file" accept="image/*" id="avatar" name="avatar" />
                     <label htmlFor="nickname">Nickname (Optional)</label>
                     <input value={nickname} onChange={(e) => setNickname(e.target.value)} type="text" placeholder="Nickname" id="nickname" name="nickname"/>
                     {errors.includes("nickname") && (

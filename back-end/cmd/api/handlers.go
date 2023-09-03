@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -39,11 +40,53 @@ func (app *application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var userData models.UserData
-	err := app.readJSON(w, r, &userData)
+	// Parse the multipart form data to handle file uploads
+	err := r.ParseMultipartForm(10) // 10 MB max file size
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		app.errorJSON(w, fmt.Errorf("Error parsing form data"), http.StatusBadRequest)
 		return
+	}
+
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	firstName := r.FormValue("first_name")
+	lastName := r.FormValue("last_name")
+	dateOfBirth := r.FormValue("date_of_birth")
+	nickname := r.FormValue("nickname")
+	aboutMe := r.FormValue("about_me")
+
+	avatarFile, _, err := r.FormFile("avatar")
+	var avatarFileName string
+	if err != nil {
+		avatarFileName = ""
+	} else {
+		defer avatarFile.Close()
+
+		avatarFolderPath := "database/avatars/"
+		avatarFileName = firstName + lastName + ".jpg"
+		avatarFileData, err := ioutil.ReadAll(avatarFile)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error reading avatar file"), http.StatusInternalServerError)
+			return
+		}
+
+		err = ioutil.WriteFile(avatarFolderPath+avatarFileName, avatarFileData, 0644)
+		fmt.Println(err)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error saving avatar file"), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	userData := models.UserData{
+		Email:       email,
+		Password:    password,
+		FirstName:   firstName,
+		LastName:    lastName,
+		DateOfBirth: dateOfBirth,
+		Avatar:      avatarFileName,
+		Nickname:    nickname,
+		AboutMe:     aboutMe,
 	}
 
 	_, err = app.database.CheckEmail(userData.Email)

@@ -44,6 +44,12 @@ function User() {
         }
       })
       .then((data) => {
+        if (data.user_data.avatar) {
+        const avatarPath = `/avatars/${data.user_data.avatar}`;
+        data.user_data.avatar = avatarPath;
+        } else{
+          data.user_data.avatar = Avatar
+        }
         setUserData(data);
         const currentUserID = data.current_user;
         const followers = data.followers || [];
