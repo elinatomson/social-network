@@ -6,6 +6,7 @@ import GroupRequests from "../components/GroupRequests";
 import GroupInvitations from "../components/GroupInvitations";
 import Search from "../components/Search";
 import { displayErrorMessage } from "../components/ErrorMessage";
+import GroupEventNotifications from './GroupEventNotifications';
 
 function Header() {
   const [userData, setUserData] = useState(null);
@@ -31,6 +32,7 @@ function Header() {
                   <FollowRequests />
                   <GroupRequests />
                   <GroupInvitations />
+                  <GroupEventNotifications />
               </div>
               <div className="avatar">
                   <img

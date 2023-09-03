@@ -689,6 +689,23 @@ func (m *SqliteDB) GetGroupMembers(groupID int) ([]int, error) {
 	return groupMembers, nil
 }
 
+func (m *SqliteDB) GetGroupCreator(groupID int) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT group_creator_id FROM groupmembers WHERE group_id = $1`
+
+	row := m.DB.QueryRowContext(ctx, stmt, groupID)
+
+	var creatorID int
+	err := row.Scan(&creatorID)
+	if err != nil {
+		return 0, err
+	}
+
+	return creatorID, nil
+}
+
 func (m *SqliteDB) GroupInvitations(userID int) ([]models.GroupMembers, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -866,17 +883,76 @@ func (m *SqliteDB) DeclineGroupRequest(groupID, memberID int) error {
 	return nil
 }
 
-func (m *SqliteDB) CreateEvent(event *models.Event) error {
+func (m *SqliteDB) CreateEvent(event *models.Event) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	stmt := `INSERT INTO events (title, description, user_id, first_name, last_name, time, group_id) VALUES (?, ?, ?, ?, ?, ?, ?)`
 
-	_, err := m.DB.ExecContext(ctx, stmt, event.Title, event.Description, event.UserID, event.FirstName, event.LastName, event.Time, event.GroupID)
+	result, err := m.DB.ExecContext(ctx, stmt, event.Title, event.Description, event.UserID, event.FirstName, event.LastName, event.Time, event.GroupID)
+	if err != nil {
+		return 0, err
+	}
+
+	// Retrieve the last inserted ID
+	eventID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	// Return the generated EventID
+	return int(eventID), nil
+}
+
+func (m *SqliteDB) EventNotifications(eventID, memberID, groupID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `INSERT INTO eventnotifications (event_id, member_id, group_id) VALUES (?, ?, ?)`
+
+	_, err := m.DB.ExecContext(ctx, stmt, eventID, memberID, groupID)
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func (m *SqliteDB) GetEventNotifications(userID int) ([]models.EventNotifications, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT event_id, group_id FROM eventnotifications WHERE member_id = ?`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var eventNotifications []models.EventNotifications
+
+	for rows.Next() {
+		var eventNotification models.EventNotifications
+		err := rows.Scan(&eventNotification.EventID, &eventNotification.GroupID)
+		if err != nil {
+			return nil, err
+		}
+		eventNotifications = append(eventNotifications, eventNotification)
+	}
+
+	return eventNotifications, nil
+}
+
+func (m *SqliteDB) DeleteFromEventNotifications(eventID, userID int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `DELETE FROM eventnotifications WHERE event_id = ? AND member_id = ?`
+
+	_, err := m.DB.ExecContext(ctx, stmt, eventID, userID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -1214,13 +1214,131 @@ func (app *application) CreateEventHandler(w http.ResponseWriter, r *http.Reques
 	event.FirstName = firstName
 	event.LastName = lastName
 
-	err = app.database.CreateEvent(&event)
+	eventID, err := app.database.CreateEvent(&event)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
+		return
+	}
+
+	groupMembers, err := app.database.GetGroupMembers(event.GroupID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting group members from database"), http.StatusInternalServerError)
+		return
+	}
+
+	for _, memberID := range groupMembers {
+		err = app.database.EventNotifications(eventID, memberID, event.GroupID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	groupCreatorID, err := app.database.GetGroupCreator(event.GroupID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting group members from database"), http.StatusInternalServerError)
+		return
+	}
+
+	err = app.database.EventNotifications(eventID, groupCreatorID, event.GroupID)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
 		return
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, event)
+}
+
+func (app *application) GroupEventNotificationsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/group-event-notifications" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		userID = 0
+		return
+	}
+
+	eventNotifications, err := app.database.GetEventNotifications(userID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get event notifications"), http.StatusInternalServerError)
+		return
+	}
+
+	type GroupRequestWithUserData struct {
+		EventID    int    `json:"event_id"`
+		EventTitle string `json:"event_title"`
+		GroupID    int    `json:"group_id"`
+		GroupTitle string `json:"group_title"`
+	}
+
+	var eventNotificationWithGroupData []GroupRequestWithUserData
+
+	for _, notification := range eventNotifications {
+		group, err := app.database.GetGroup(notification.GroupID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to get group data for group ID"), http.StatusInternalServerError)
+			return
+		}
+
+		event, err := app.database.GetEvent(notification.EventID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Failed to get group data for group ID"), http.StatusInternalServerError)
+			return
+		}
+
+		requestData := GroupRequestWithUserData{
+			EventID:    notification.EventID,
+			EventTitle: event.Title,
+			GroupID:    notification.GroupID,
+			GroupTitle: group.Title,
+		}
+
+		eventNotificationWithGroupData = append(eventNotificationWithGroupData, requestData)
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, eventNotificationWithGroupData)
+}
+
+func (app *application) EventSeenHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/group-event-seen" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	var eventNotification models.EventNotifications
+	err = app.readJSON(w, r, &eventNotification)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		return
+	}
+
+	err = app.database.DeleteFromEventNotifications(eventNotification.EventID, userID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to delete from database"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, eventNotification)
 }
 
 func (app *application) GroupEventsHandler(w http.ResponseWriter, r *http.Request) {

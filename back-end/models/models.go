@@ -102,3 +102,9 @@ type EventParticipants struct {
 	LastName      string `json:"last_name"`
 	Going         *bool  `json:"going,omitempty"`
 }
+
+type EventNotifications struct {
+	EventID  int `json:"event_id"`
+	MemberID int `json:"member_id"`
+	GroupID  int `json:"group_id"`
+}
