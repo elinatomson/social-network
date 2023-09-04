@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -366,11 +368,66 @@ func (app *application) CreatePostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var post models.Post
-	err := app.readJSON(w, r, &post)
+	err := r.ParseMultipartForm(10) // 10 MB max file size
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		app.errorJSON(w, fmt.Errorf("Error parsing form data"), http.StatusBadRequest)
 		return
+	}
+
+	content := r.FormValue("content")
+	privacy := r.FormValue("privacy")
+	selectedUserID := r.FormValue("selected_user_id")
+	groupID := r.FormValue("group_id")
+	var groupIDInt int
+	if groupID != "" && groupID != "undefined" {
+		groupIDInt, err = strconv.Atoi(groupID)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error converting string to integer"), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		groupIDInt = 0
+	}
+
+	imageFile, _, err := r.FormFile("image")
+	var imageFileName string
+	if err != nil {
+		imageFileName = ""
+	} else {
+		defer imageFile.Close()
+
+		imageFolderPath := "database/images/"
+		//generating a random image name
+		randomBytes := make([]byte, 16)
+		_, err := rand.Read(randomBytes)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error generating random image name"), http.StatusInternalServerError)
+			return
+		}
+
+		//converting random bytes to a hexadecimal string
+		imageName := hex.EncodeToString(randomBytes) + ".jpg"
+		imageFileName = imageName
+
+		imageFileData, err := ioutil.ReadAll(imageFile)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error reading image file"), http.StatusInternalServerError)
+			return
+		}
+
+		err = ioutil.WriteFile(imageFolderPath+imageFileName, imageFileData, 0644)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error saving image file"), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	post := models.Post{
+		Content:        content,
+		Privacy:        privacy,
+		SelectedUserID: selectedUserID,
+		GroupID:        groupIDInt,
+		Image:          imageFileName,
 	}
 
 	userId, _, firstName, lastName, err := app.database.DataFromSession(r)
@@ -475,11 +532,58 @@ func (app *application) CommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var comment models.Comment
-	err := app.readJSON(w, r, &comment)
+	err := r.ParseMultipartForm(10) // 10 MB max file size
 	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Error decoding JSON data"), http.StatusBadRequest)
+		app.errorJSON(w, fmt.Errorf("Error parsing form data"), http.StatusBadRequest)
 		return
+	}
+
+	commentContent := r.FormValue("comment")
+	postID := r.FormValue("post_id")
+	var postIDInt int
+	postIDInt, err = strconv.Atoi(postID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error converting string to integer"), http.StatusInternalServerError)
+		return
+	}
+
+	imageFile, _, err := r.FormFile("image")
+	var imageFileName string
+	if err != nil {
+		imageFileName = ""
+	} else {
+		defer imageFile.Close()
+
+		imageFolderPath := "database/images/"
+		//generating a random image name
+		randomBytes := make([]byte, 16)
+		_, err := rand.Read(randomBytes)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error generating random image name"), http.StatusInternalServerError)
+			return
+		}
+
+		//converting random bytes to a hexadecimal string
+		imageName := hex.EncodeToString(randomBytes) + ".jpg"
+		imageFileName = imageName
+
+		imageFileData, err := ioutil.ReadAll(imageFile)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error reading image file"), http.StatusInternalServerError)
+			return
+		}
+
+		err = ioutil.WriteFile(imageFolderPath+imageFileName, imageFileData, 0644)
+		if err != nil {
+			app.errorJSON(w, fmt.Errorf("Error saving image file"), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	comment := models.Comment{
+		PostID:  postIDInt,
+		Comment: commentContent,
+		Image:   imageFileName,
 	}
 
 	userId, _, firstName, lastName, err := app.database.DataFromSession(r)

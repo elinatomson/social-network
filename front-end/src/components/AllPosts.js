@@ -61,7 +61,7 @@ function AllPosts() {
                 {post.privacy} 
               </div>
               <p className="post">{post.content}</p>
-              {post.image && <img src={post.image} alt="PostImage" />}
+              {post.image && <img className="post-image" src={`/images/${post.image}`} alt="PostImage" />}
               <div className="comments">
                 {post.comments === null ? (
                   <p className="comment-text">No comments</p>
@@ -76,6 +76,7 @@ function AllPosts() {
                         <div className="comment-text">
                           {comment.comment}
                         </div>
+                        {comment.image && <img className="post-image" src={`/images/${comment.image}`} alt="CommentImage" />}
                       </div>
                     ))}
                   </div>

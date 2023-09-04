@@ -3,7 +3,7 @@ import { displayErrorMessage } from "./ErrorMessage";
 
 function CreateComment({ postID, addNewComment }) {
   const [commentContent, setCommentContent] = useState("");
-  const [imageOrGif, setImageOrGif] = useState("");
+  const [imageOrGif, setImageOrGif] = useState(null);
   const [isCommentFocused, setIsCommentFocused] = useState(false);
 
 
@@ -16,27 +16,18 @@ function CreateComment({ postID, addNewComment }) {
     setImageOrGif(file);
   };
 
-  const handleBlur = () => {
-    // Adding a small delay before hiding the input fields to allow clicking the submit button
-    setTimeout(() => {
-      setIsCommentFocused(false);
-    }, 100);
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    const commentData = {
-        post_id: postID,
-        comment: commentContent,
-        image: imageOrGif,
-    };
+    const commentData = new FormData();
+    commentData.append("post_id", postID);
+    commentData.append("comment", commentContent);
+    commentData.append("image", imageOrGif);
 
     const headers = new Headers();
-    headers.append("Content-Type", "application/json");
 
     let requestOptions = {
-      body: JSON.stringify(commentData),
+      body: commentData,
       method: "POST",
       headers: headers,
     }
@@ -52,6 +43,7 @@ function CreateComment({ postID, addNewComment }) {
               first_name: createdComment.first_name,
               last_name: createdComment.last_name,
               comment: createdComment.comment,
+              image: createdComment.image,
               date: createdComment.date,
             };
             addNewComment(postID, newComment); 
@@ -68,17 +60,17 @@ function CreateComment({ postID, addNewComment }) {
       .catch((error) => {
         displayErrorMessage(`${error.message}`);
       });
+      setIsCommentFocused(false)
   };
 
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        <input className="content" placeholder="Comment..." value={commentContent} onChange={handleContentChange} onFocus={() => setIsCommentFocused(true)}
-          onBlur={handleBlur} required/>
+        <input className="content" placeholder="Comment..." value={commentContent} onChange={handleContentChange} onFocus={() => setIsCommentFocused(true)} required/>
             {isCommentFocused && (
                 <>
                   <label htmlFor="image"></label>
-                  <input className="insert" type="file" name="image" accept="image/*, .gif" value={imageOrGif} onChange={handleImageChange}/>
+                  <input className="insert" type="file" name="image" accept="image/*, .gif" onChange={handleImageChange}/>
                   <button className="comment-button" type="submit">Add Comment</button>
                 </>
             )}

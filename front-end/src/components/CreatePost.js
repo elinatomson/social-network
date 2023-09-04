@@ -7,7 +7,7 @@ function CreatePost({ groupId }) {
   const [showFields, setShowFields] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [postPrivacy, setPostPrivacy] = useState("public");
-  const [imageOrGif, setImageOrGif] = useState("");
+  const [imageOrGif, setImageOrGif] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [errors, setErrors] =useState([])
@@ -66,19 +66,17 @@ function CreatePost({ groupId }) {
     // Convert the selectedUsers array to a comma-separated string
     const selectedUserIdString = selectedUsers.join(",");
     
-    const postData = {
-    content: postContent,
-    privacy: postPrivacy,
-    selected_user_id: selectedUserIdString,
-    image: imageOrGif,
-    group_id: groupId, 
-    };
+    const postData = new FormData();
+    postData.append("content", postContent);
+    postData.append("privacy", postPrivacy);
+    postData.append("selected_user_id", selectedUserIdString);
+    postData.append("image", imageOrGif);
+    postData.append("group_id", groupId);
 
     const headers = new Headers();
-    headers.append("Content-Type", "application/json");
 
     let requestOptions = {
-      body: JSON.stringify(postData),
+      body: postData,
       method: "POST",
       headers: headers,
     }
@@ -159,7 +157,7 @@ function CreatePost({ groupId }) {
           )}
               <div className="right-container1">
                   <label htmlFor="image"></label>
-                  <input className="insert" type="file" name="image" accept="image/*, .gif" value={imageOrGif} onChange={handleImageChange}/>
+                  <input className="insert" type="file" name="image" accept="image/*, .gif" onChange={handleImageChange}/>
               </div>
           </div>
               <button className="button" type="submit">Create Post</button>
