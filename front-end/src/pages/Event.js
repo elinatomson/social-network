@@ -102,7 +102,7 @@ function Event() {
         <div className="app-container">
             <Header />
             <div className="home">
-            {eventData.is_group_member ? (
+            {eventData.is_group_member || eventData.is_group_creator ? (
             <div>
                 <div id="error" className="alert"></div>
                 <div className="container">

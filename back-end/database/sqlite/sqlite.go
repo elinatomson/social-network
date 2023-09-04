@@ -693,7 +693,7 @@ func (m *SqliteDB) GetGroupCreator(groupID int) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT group_creator_id FROM groupmembers WHERE group_id = $1`
+	stmt := `SELECT user_id FROM groups WHERE group_id = $1`
 
 	row := m.DB.QueryRowContext(ctx, stmt, groupID)
 
@@ -1002,16 +1002,32 @@ func (m *SqliteDB) CheckMembership(userID, groupID int) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT EXISTS ( SELECT 1 FROM groupmembers WHERE group_id = $1 AND member_id = $2 OR group_creator_id = $3)`
+	stmt := `SELECT EXISTS ( SELECT 1 FROM groupmembers WHERE group_id = $1 AND member_id = $2)`
 
 	var isMember bool
-	row := m.DB.QueryRowContext(ctx, stmt, groupID, userID, userID)
+	row := m.DB.QueryRowContext(ctx, stmt, groupID, userID)
 	err := row.Scan(&isMember)
 	if err != nil {
 		return false, err
 	}
 
 	return isMember, nil
+}
+
+func (m *SqliteDB) CheckCreator(userID, groupID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT EXISTS ( SELECT 1 FROM groups WHERE group_id = $1 AND user_id = $2)`
+
+	var isCreator bool
+	row := m.DB.QueryRowContext(ctx, stmt, groupID, userID)
+	err := row.Scan(&isCreator)
+	if err != nil {
+		return false, err
+	}
+
+	return isCreator, nil
 }
 
 func (m *SqliteDB) GetParticipants(id int) ([]models.EventParticipants, error) {

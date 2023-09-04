@@ -71,7 +71,6 @@ func (app *application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 		}
 
 		err = ioutil.WriteFile(avatarFolderPath+avatarFileName, avatarFileData, 0644)
-		fmt.Println(err)
 		if err != nil {
 			app.errorJSON(w, fmt.Errorf("Error saving avatar file"), http.StatusInternalServerError)
 			return
@@ -1455,6 +1454,12 @@ func (app *application) GroupEventHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	isGroupCreator, err := app.database.CheckCreator(userID, event.GroupID)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
 	participants, err := app.database.GetParticipants(id1)
 	if err != nil {
 		app.errorJSON(w, err)
@@ -1462,13 +1467,15 @@ func (app *application) GroupEventHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	response := struct {
-		IsGroupMember bool                       `json:"is_group_member"`
-		Event         *models.Event              `json:"event"`
-		Participants  []models.EventParticipants `json:"participants"`
+		IsGroupMember  bool                       `json:"is_group_member"`
+		IsGroupCreator bool                       `json:"is_group_creator"`
+		Event          *models.Event              `json:"event"`
+		Participants   []models.EventParticipants `json:"participants"`
 	}{
-		IsGroupMember: isGroupMember,
-		Event:         event,
-		Participants:  participants,
+		IsGroupMember:  isGroupMember,
+		IsGroupCreator: isGroupCreator,
+		Event:          event,
+		Participants:   participants,
 	}
 
 	app.writeJSON(w, http.StatusOK, response)
