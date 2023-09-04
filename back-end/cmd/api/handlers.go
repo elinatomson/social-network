@@ -62,7 +62,7 @@ func (app *application) RegisterHandler(w http.ResponseWriter, r *http.Request) 
 	} else {
 		defer avatarFile.Close()
 
-		avatarFolderPath := "database/avatars/"
+		avatarFolderPath := "database/images/"
 		avatarFileName = firstName + lastName + ".jpg"
 		avatarFileData, err := ioutil.ReadAll(avatarFile)
 		if err != nil {
@@ -288,6 +288,12 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	following, err := app.database.Following(user.UserID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+
 	var filteredPosts []models.Post
 	for i := range allPosts {
 		post := allPosts[i]
@@ -337,11 +343,13 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 		CurrentUser int               `json:"current_user"`
 		UserData    *models.UserData  `json:"user_data"`
 		Followers   []models.UserData `json:"followers"`
+		Following   []models.UserData `json:"following"`
 		Posts       []models.Post     `json:"posts"`
 	}{
 		CurrentUser: userID,
 		UserData:    user,
 		Followers:   followers,
+		Following:   following,
 		Posts:       filteredPosts,
 	}
 

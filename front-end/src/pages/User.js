@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { displayErrorMessage } from "../components/ErrorMessage";
 import Header from '../components/Header';
 import Footer from "../components/Footer";
@@ -9,9 +9,6 @@ import About from './../images/about.PNG';
 import Avatar from './../images/avatar.PNG';
 import CreateComment from "../components/CreateComment";
 import Follow from "../components/Follow";
-import Following from "../components/Following";
-import Followers from "../components/Followers";
-
 
 function User() {
   const navigate = useNavigate();
@@ -45,7 +42,7 @@ function User() {
       })
       .then((data) => {
         if (data.user_data.avatar) {
-        const avatarPath = `/avatars/${data.user_data.avatar}`;
+        const avatarPath = `/images/${data.user_data.avatar}`;
         data.user_data.avatar = avatarPath;
         } else{
           data.user_data.avatar = Avatar
@@ -104,10 +101,38 @@ function User() {
                       </p>
                       <div className="container">
                         <div className="left-container2">
-                          <Following />
+                        <div className="following">Following</div>
+                          <div id="error" className="alert"></div>
+                          {userData.following === null ? (
+                            <p className="user">No users.</p>
+                          ) : (
+                            <div className="user">
+                              {userData.following.map((user) => (
+                                <div key={user.user_id}>
+                                  <Link className="link" to={`/user/${user.user_id}`}>
+                                    {user.first_name} {user.last_name}
+                                  </Link>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div className="right-container1">
-                          <Followers />
+                        <div className="following">Followers</div>
+                          <div id="error" className="alert"></div>
+                          {userData.followers === null ? (
+                            <p className="user">No users.</p>
+                          ) : (
+                            <div className="user">
+                              {userData.followers.map((user) => (
+                                <div key={user.user_id}>
+                                  <Link className="link" to={`/user/${user.user_id}`}>
+                                    {user.first_name} {user.last_name}
+                                  </Link>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

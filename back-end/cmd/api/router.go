@@ -11,8 +11,8 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/login", app.LoginHandler)
 	mux.HandleFunc("/logout", app.LogOutHandler)
 
-	fileServer := http.FileServer(http.Dir("./database/avatars"))
-	mux.Handle("/avatars/", http.StripPrefix("/avatars/", fileServer))
+	fileServer := http.FileServer(http.Dir("./database/images"))
+	mux.Handle("/images/", http.StripPrefix("/images/", fileServer))
 
 	mux.Handle("/profile", app.authRequired(http.HandlerFunc(app.ProfileHandler)))
 	mux.Handle("/profile-type", app.authRequired(http.HandlerFunc(app.ProfileTypeHandler)))

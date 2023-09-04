@@ -17,7 +17,7 @@ function Header() {
       .then((response) => response.json())
       .then((data) => {
         if (data.avatar) {
-          const avatarPath = `/avatars/${data.avatar}`;
+          const avatarPath = `/images/${data.avatar}`;
           data.avatar = avatarPath;
         } else {
           data.avatar = Avatar;
