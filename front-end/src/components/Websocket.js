@@ -3,23 +3,41 @@ import { displayErrorMessage } from "../components/ErrorMessage";
 
 let socket;
 
-function WebSocketComponent({ firstNameTo, firstNameFrom, conversationHistory }) {
-  const [messages, setMessages] = useState(conversationHistory);
-  console.log(conversationHistory)
+function WebSocketComponent({ firstNameTo, firstNameFrom }) {
+  const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
 
   useEffect(() => {
+    function fetchConversationHistory() {
+      fetch(`/conversation-history/?firstNameTo=${firstNameTo.first_name}`)
+      .then(response => response.json())
+      .then(messagesData => {  
+        console.log(messagesData)
+        if (messagesData && messagesData.length > 0) {
+          const messages = messagesData.map(message => {
+            var formattedDate = new Date(message.date).toLocaleString();
+            return `${formattedDate} - ${message.first_name_from}: ${message.message}`;
+          });
+          setMessages(messages);
+        } else {
+          setMessages([]);
+        }
+      })
+      .catch(error => {
+        displayErrorMessage(`${error.message}`);
+      });
+    }
+
     function handleMessage(event) {
       const messageData = JSON.parse(event.data);
-      console.log(messageData)
       const messageText = messageData.message;
       const senderName = messageData.first_name_from;
       const formattedTime = new Date(messageData.date).toLocaleString();
-  
+
       const formattedMessage = `${formattedTime} - ${senderName}: ${messageText}`;
-  
+
       setMessages((prevMessages) => [...prevMessages, formattedMessage]);
-  
+
       // Automatically scroll to the bottom of the message box
       const messageBox = document.getElementById("message-box");
       messageBox.scrollTop = messageBox.scrollHeight;
@@ -29,6 +47,7 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, conversationHistory })
 
     socket.addEventListener('open', () => {
       console.log('WebSocket connection established.');
+      fetchConversationHistory({ firstNameTo })
     });
 
     socket.addEventListener('error', (error) => {
@@ -43,7 +62,7 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, conversationHistory })
         console.log('WebSocket connection closed.');
       }
     };
-  }, [firstNameTo, firstNameFrom]);
+  }, [firstNameTo]);
 
   function handleSendMessage(event) {
     event.preventDefault();
@@ -60,6 +79,10 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, conversationHistory })
       date: date,
     };
 
+    const formattedTime = date.toLocaleString();
+    const formattedMessage = `${formattedTime} - ${firstNameFrom}: ${messageInput}`;
+    setMessages((prevMessages) => [...prevMessages, formattedMessage]);
+
     socket.send(JSON.stringify(data));
     setMessageInput('');
 
@@ -72,7 +95,6 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, conversationHistory })
     })
       .then((response) => {
         if (response.ok) {
-          console.log(data)
           console.log('Message sent successfully');
         } else {
           return response.json();

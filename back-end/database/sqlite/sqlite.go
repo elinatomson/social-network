@@ -1160,9 +1160,9 @@ func (m *SqliteDB) GetMessage(firstNameFrom, firstNameTo string) ([]models.Messa
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT message, first_name_from, first_name_to, date FROM messages WHERE (first_name_to = ? AND first_name_from = ?) OR (first_name_from = ? AND first_name_to = ?)`
+	stmt := `SELECT message, first_name_from, first_name_to, date FROM messages WHERE (first_name_to = $1 AND first_name_from = $2) OR (first_name_from = $1 AND first_name_to = $2)`
 
-	rows, err := m.DB.QueryContext(ctx, stmt, firstNameTo, firstNameFrom, firstNameFrom, firstNameTo)
+	rows, err := m.DB.QueryContext(ctx, stmt, firstNameTo, firstNameFrom)
 	if err != nil {
 		return nil, err
 	}

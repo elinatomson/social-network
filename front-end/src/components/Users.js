@@ -6,27 +6,12 @@ import { displayErrorMessage } from "../components/ErrorMessage";
 function Users() {
   const [showUsers, setShowUsers] = useState(false);
   const [users, setUsers] = useState([]);
-  const [messages, setMessages] = useState([]);
   const [firstNameTo, setFirstNameTo] = useState(null);
+  const [firstNameFrom, setFirstNameFrom] = useState(null);
 
   const handleToggleUsers = () => {
     setShowUsers(!showUsers);
   };
-
-  function fetchConversationHistory(user) {
-    fetch(`/messages?firstNameTo=${user.first_name}`)
-      .then(response => response.json())
-      .then(messagesData => {  
-        if (messagesData && messagesData.length > 0) {
-          setMessages(messagesData);
-        } else {
-          setMessages([]);
-        }
-      })
-      .catch(error => {
-        displayErrorMessage(`${error.message}`);
-      });
-  }
 
   useEffect(() => {
     fetch('/users')
@@ -34,6 +19,10 @@ function Users() {
       .then((data) => {
         if (data) {
           const filteredUsers = data.filter((user) => !user.currentUser);
+          const currentUser = data.find((user) => user.currentUser);
+          if (currentUser) {
+            setFirstNameFrom(currentUser.first_name);
+          }
           setUsers(filteredUsers);
         }
       })
@@ -47,7 +36,6 @@ function Users() {
           setFirstNameTo(null); 
         } else {
           setFirstNameTo(user);
-          fetchConversationHistory(user);
         }
     };
 
@@ -72,9 +60,8 @@ function Users() {
         )}
       </div>
       )}
-
       <div className="chat">
-        {firstNameTo && <WebSocketComponent firstNameTo={firstNameTo} conversationHistory={messages}/>}
+        {firstNameTo && <WebSocketComponent firstNameTo={firstNameTo} firstNameFrom={firstNameFrom}/>}
       </div>
     </div>
   );

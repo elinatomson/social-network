@@ -50,7 +50,7 @@ func (app *application) routes() http.Handler {
 	mux.Handle("/not-going", app.authRequired(http.HandlerFunc(app.NotGoingHandler)))
 	mux.Handle("/ws", app.authRequired(http.HandlerFunc(app.WebsocketHandler)))
 	mux.Handle("/message", app.authRequired(http.HandlerFunc(app.AddMessageHandler)))
-	mux.Handle("/messages", app.authRequired(http.HandlerFunc(app.GetMessagesHandler)))
+	mux.Handle("/conversation-history/", app.authRequired(http.HandlerFunc(app.GetMessagesHandler)))
 
 	return handler
 }

@@ -1725,12 +1725,13 @@ func (app *application) GetMessagesHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if r.URL.Path != "/messages" {
+	if r.URL.Path != "/conversation-history/" {
 		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
 		return
 	}
 
 	firstNameTo := r.URL.Query().Get("firstNameTo")
+	fmt.Println(firstNameTo)
 	_, _, firstNameFrom, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the name"), http.StatusInternalServerError)
