@@ -12,7 +12,7 @@ import (
 const port = 8080
 
 type application struct {
-	database sqlite.SqliteDB
+	database sqlite.SqliteDB // Mutex to protect concurrent access to connections
 }
 
 func main() {

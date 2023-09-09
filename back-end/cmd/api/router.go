@@ -48,7 +48,8 @@ func (app *application) routes() http.Handler {
 	mux.Handle("/group-event/", app.authRequired(http.HandlerFunc(app.GroupEventHandler)))
 	mux.Handle("/going", app.authRequired(http.HandlerFunc(app.GoingHandler)))
 	mux.Handle("/not-going", app.authRequired(http.HandlerFunc(app.NotGoingHandler)))
-	mux.Handle("/ws", app.authRequired(http.HandlerFunc(app.WebsocketHandler)))
+	mux.HandleFunc("/ws", app.ConnectionsHandler)
+	//mux.Handle("/ws", app.authRequired(http.HandlerFunc(app.WebsocketHandler)))
 	mux.Handle("/message", app.authRequired(http.HandlerFunc(app.AddMessageHandler)))
 	mux.Handle("/conversation-history/", app.authRequired(http.HandlerFunc(app.GetMessagesHandler)))
 
