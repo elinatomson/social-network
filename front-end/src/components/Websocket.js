@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { displayErrorMessage } from "../components/ErrorMessage";
+import Picker from '@emoji-mart/react'
+import data from '@emoji-mart/data/sets/14/twitter.json'
 
 function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
   const [ws, setWs] = useState(null);
   const chatContainerRef = useRef(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
     const websocket = new WebSocket('ws://localhost:8080/ws');
@@ -142,11 +145,28 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
             value={messageInput}
             onChange={handleInputChange}
           />
+          <button
+            className="emoji-button"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          >
+            😃
+          </button>
         </div>
         <div className="right-container1">
           <button className="chat-send-button" id="send-button" onClick={sendMessage}>
             Send
           </button>
+        </div>
+        <div className="emoji-picker">
+          {showEmojiPicker && (
+            <Picker data={data}
+              set="twitter" // Choose your preferred emoji set
+              onEmojiSelect={(emoji) => {
+                setMessageInput((prevMessageInput) => prevMessageInput + emoji.native);
+                setShowEmojiPicker(false);
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
