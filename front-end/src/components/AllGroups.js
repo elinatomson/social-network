@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { displayErrorMessage } from "./ErrorMessage";
 import { Link } from 'react-router-dom';
+import WebSocketComponentForGroup from '../components/WebsocketForGroup'; 
 
 function Groups() {
     const [showGroups, setShowGroups] = useState(false);
     const [groups, setGroups] = useState([]);
+    const [groupName, setGroupName] = useState(null);
+    const [firstNameFrom, setFirstNameFrom] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
     const { groupContent } = location.state || {};
@@ -15,17 +18,31 @@ function Groups() {
     };
 
     useEffect(() => {
-        fetch('/all-groups')
-        .then((response) => response.json())
-        .then((data) => {
-            if (data) {
-                setGroups(data);
-            }
-        })
-        .catch((error) => {
-            displayErrorMessage(`${error.message}`);
-        });
-        }, [navigate, groupContent]);
+    fetch('/all-groups')
+    .then((response) => response.json())
+    .then((data) => {
+        if (data) {
+            const currentUser = data.current_user;
+            setFirstNameFrom(currentUser.first_name);
+            setGroups(data.groups);
+        }
+    })
+    .catch((error) => {
+        displayErrorMessage(`${error.message}`);
+    });
+    }, [navigate, groupContent]);
+
+    const handleGroupClick = (group) => {
+        if (groupName === group) {
+          setGroupName(null); 
+        } else {
+          setGroupName(group);
+        }
+    };
+
+    const handleChatClose = () => {
+        setGroupName(null); 
+    };
 
 
     return (
@@ -40,8 +57,8 @@ function Groups() {
                     <div className="user">
                         {groups.map((group) => (
                             <div key={group.group_id}>
-                                <Link className="link-btn" to={`/group/${group.group_id}`}>
-                                {group.title}
+                                <Link className="link-btn" onClick={() => handleGroupClick(group)}>
+                                    {group.title}
                                 </Link>
                             </div>
                         ))}
@@ -49,6 +66,9 @@ function Groups() {
                 )}
             </div>
             )}
+            <div className="chat">
+            {groupName && <WebSocketComponentForGroup groupName={groupName} firstNameFrom={firstNameFrom} closeChat={handleChatClose}/>}
+      </div>
         </div>
     );
 }

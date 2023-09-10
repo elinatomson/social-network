@@ -49,8 +49,10 @@ func (app *application) routes() http.Handler {
 	mux.Handle("/going", app.authRequired(http.HandlerFunc(app.GoingHandler)))
 	mux.Handle("/not-going", app.authRequired(http.HandlerFunc(app.NotGoingHandler)))
 	mux.Handle("/ws", app.authRequired(http.HandlerFunc(app.WebsocketHandler)))
+	mux.Handle("/chatroom/", app.authRequired(http.HandlerFunc(app.GroupWebsocketHandler)))
 	mux.Handle("/message", app.authRequired(http.HandlerFunc(app.AddMessageHandler)))
 	mux.Handle("/conversation-history/", app.authRequired(http.HandlerFunc(app.GetMessagesHandler)))
+	mux.Handle("/group-conversation-history/", app.authRequired(http.HandlerFunc(app.GetGroupMessagesHandler)))
 	mux.Handle("/unread-messages", app.authRequired(http.HandlerFunc(app.UnreadMessagesHandler)))
 	mux.Handle("/mark-messages-as-read/", app.authRequired(http.HandlerFunc(app.MarkMessagesAsReadHandler)))
 

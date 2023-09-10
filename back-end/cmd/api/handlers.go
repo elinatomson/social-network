@@ -958,14 +958,35 @@ func (app *application) AllGroupsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	userID, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
+		return
+	}
+
+	user, err := app.database.GetUserByID(userID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get user data for member ID"), http.StatusInternalServerError)
+		return
+	}
+
 	var allGroups []models.Group
 
-	allGroups, err := app.database.AllGroups()
+	allGroups, err = app.database.AllGroups()
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
 		return
 	}
-	_ = app.writeJSON(w, http.StatusOK, allGroups)
+
+	groupsWithCurrentUser := struct {
+		CurrentUser *models.UserData `json:"current_user"`
+		Groups      []models.Group   `json:"groups"`
+	}{
+		CurrentUser: user,
+		Groups:      allGroups,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, groupsWithCurrentUser)
 }
 
 func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
@@ -1772,7 +1793,29 @@ func (app *application) GetMessagesHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	messages, err := app.database.GetMessage(firstNameFrom, firstNameTo)
+	messages, err := app.database.GetMessages(firstNameFrom, firstNameTo)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get messages"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, messages)
+}
+
+func (app *application) GetGroupMessagesHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/group-conversation-history/" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	groupName := r.URL.Query().Get("groupName")
+
+	messages, err := app.database.GetGroupMessages(groupName)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get messages"), http.StatusInternalServerError)
 		return
@@ -1823,12 +1866,6 @@ func (app *application) WebsocketHandler(w http.ResponseWriter, r *http.Request)
 
 		// Convert the byte slice to a string
 		messageStr := string(message)
-
-		// Check if the message is valid JSON
-		if !json.Valid([]byte(messageStr)) {
-			log.Println("Received invalid JSON message:", messageStr)
-			break
-		}
 
 		// Unmarshal the string into a Message struct
 		var msg models.Message
@@ -1898,6 +1935,82 @@ func (app *application) handleMessage(r *http.Request, w http.ResponseWriter, se
 		}
 	} else {
 		log.Println("No active WebSocket connection found for sender:", senderFirstName)
+	}
+}
+
+var (
+	upgraderGroup = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			allowedOrigin := "http://localhost:3000"
+			return r.Header.Get("Origin") == allowedOrigin
+		},
+	}
+	// Use a map to maintain active WebSocket connections for group chats.
+	groupConnections = make(map[string]map[*websocket.Conn]bool)
+	groupMutex       = sync.Mutex{}
+)
+
+func (app *application) GroupWebsocketHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgraderGroup.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Failed to upgrade connection:", err)
+		return
+	}
+
+	groupName := r.URL.Query().Get("group")
+
+	// Lock and add the WebSocket connection to the group's connection map
+	groupMutex.Lock()
+	if groupConnections[groupName] == nil {
+		groupConnections[groupName] = make(map[*websocket.Conn]bool)
+	}
+	groupConnections[groupName][conn] = true
+	groupMutex.Unlock()
+
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("Failed to read message:", err)
+			break
+		}
+
+		messageStr := string(message)
+
+		var groupMsg models.Message
+		err = json.Unmarshal([]byte(messageStr), &groupMsg)
+		if err != nil {
+			log.Println("Failed to unmarshal message:", err)
+			break
+		}
+
+		broadcastGroupMessage(groupName, groupMsg)
+	}
+
+	// Remove the WebSocket connection from the group's connection map when the connection is closed
+	groupMutex.Lock()
+	delete(groupConnections[groupName], conn)
+	groupMutex.Unlock()
+	conn.Close()
+}
+
+func broadcastGroupMessage(groupName string, message models.Message) {
+	// Lock the group's connection map to ensure thread safety
+	groupMutex.Lock()
+	defer groupMutex.Unlock()
+
+	// Iterate over all WebSocket connections in the group and send the message
+	for conn := range groupConnections[groupName] {
+		data, err := json.Marshal(message)
+		if err != nil {
+			log.Println("Failed to marshal message:", err)
+			continue
+		}
+
+		err = conn.WriteMessage(websocket.TextMessage, data)
+		if err != nil {
+			log.Println("Failed to write message to connection:", err)
+			continue
+		}
 	}
 }
 

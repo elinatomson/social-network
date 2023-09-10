@@ -3,7 +3,7 @@ import { displayErrorMessage } from "../components/ErrorMessage";
 import Picker from '@emoji-mart/react'
 import data from '@emoji-mart/data/sets/14/twitter.json'
 
-function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
+function WebSocketComponentForGroup({ groupName, firstNameFrom, closeChat }) {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
   const [ws, setWs] = useState(null);
@@ -11,7 +11,7 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
-    const websocket = new WebSocket('ws://localhost:8080/ws');
+    const websocket = new WebSocket('ws://localhost:8080/chatroom/?group={groupName}');
     websocket.onopen = () => {
       console.log('WebSocket connected');
       setWs(websocket);
@@ -21,10 +21,10 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
     websocket.onmessage = (event) => {
       const eventData = JSON.parse(event.data);
       const message = eventData.message;
-      const from = eventData.first_name_from;
+      const from = firstNameFrom;
       const to = eventData.first_name_to;
       handleMessage(message, from, to)
-      messagesAsRead(from)
+      //messagesAsRead(from)
     };
 
     websocket.onclose = () => {
@@ -36,27 +36,27 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
     };
 
     function fetchConversationHistory() {
-      fetch(`/conversation-history/?firstNameTo=${firstNameTo.first_name}`)
-      .then(response => response.json())
-      .then(messagesData => {  
-        if (messagesData && messagesData.length > 0) {
-          const messages = messagesData.map(message => {
-            var formattedDate = new Date(message.date).toLocaleString();
-            return `${formattedDate} - ${message.first_name_from}: ${message.message}`;
-          });
-          setMessages(messages);
-        } else {
-          setMessages([]);
-        }
-      })
-      .catch(error => {
-        displayErrorMessage(`${error.message}`);
-      });
+        fetch(`/group-conversation-history/?groupName=${groupName.title}`)
+        .then(response => response.json())
+        .then(messagesData => { 
+            if (messagesData && messagesData.length > 0) {
+                const messages = messagesData.map(message => {
+                    var formattedDate = new Date(message.date).toLocaleString();
+                    return `${formattedDate} - ${message.first_name_from}: ${message.message}`;
+                });
+                setMessages(messages);
+            } else {
+                setMessages([]);
+            }
+        })
+        .catch(error => {
+            displayErrorMessage(`${error.message}`);
+        });
     }
 
-  }, [firstNameTo, firstNameFrom]);
+  }, [groupName, firstNameFrom]);
 
-  function messagesAsRead(firstNameFrom) {
+  /*function messagesAsRead(firstNameFrom) {
     fetch(`/mark-messages-as-read/?firstNameFrom=${firstNameFrom}`)
     .then(response => {
       if (response.ok) {
@@ -66,7 +66,7 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
     .catch(error => {
       displayErrorMessage(`${error.message}`);
     });
-  }
+  }*/
   
   const handleInputChange = (event) => {
     setMessageInput(event.target.value);
@@ -90,7 +90,7 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
     const data = {
       message: messageInput,
       first_name_from: firstNameFrom,
-      first_name_to: firstNameTo.first_name,
+      first_name_to: groupName.title,
       date: new Date(),
     };
     ws.send(JSON.stringify(data));
@@ -127,7 +127,7 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
 
   return (
     <div>
-      Chat with {firstNameTo.first_name}
+      Chatroom for {groupName.title}
       <button className="close-chat-button" onClick={closingChat}>
           close
       </button>
@@ -173,4 +173,4 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
   );
 }
 
-export default WebSocketComponent
+export default WebSocketComponentForGroup

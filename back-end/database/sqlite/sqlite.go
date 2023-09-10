@@ -1122,13 +1122,37 @@ func (m *SqliteDB) AddMessage(message, firstNameFrom, firstNameTo string, date t
 	return nil
 }
 
-func (m *SqliteDB) GetMessage(firstNameFrom, firstNameTo string) ([]models.Message, error) {
+func (m *SqliteDB) GetMessages(firstNameFrom, firstNameTo string) ([]models.Message, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
 	stmt := `SELECT message, first_name_from, first_name_to, date FROM messages WHERE (first_name_to = $1 AND first_name_from = $2) OR (first_name_from = $1 AND first_name_to = $2)`
 
 	rows, err := m.DB.QueryContext(ctx, stmt, firstNameTo, firstNameFrom)
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []models.Message
+	for rows.Next() {
+		var msg models.Message
+		err := rows.Scan(&msg.Message, &msg.FirstNameFrom, &msg.FirstNameTo, &msg.Date)
+		if err != nil {
+			return nil, err
+		}
+
+		messages = append(messages, msg)
+	}
+	return messages, nil
+}
+
+func (m *SqliteDB) GetGroupMessages(groupName string) ([]models.Message, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT message, first_name_from, first_name_to, date FROM messages WHERE first_name_to = $1`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, groupName)
 	if err != nil {
 		return nil, err
 	}
