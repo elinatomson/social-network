@@ -244,13 +244,43 @@ func (app *application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) GetUsersHandler(w http.ResponseWriter, r *http.Request) {
-	_, _, firstName, lastName, err := app.database.DataFromSession(r)
+	userID, _, firstName, lastName, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
 		return
 	}
 
-	users, err := app.database.GetUsers()
+	followers, err := app.database.Followers(userID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+
+	followings, err := app.database.Following(userID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+
+	//initalizing a map to store unique users
+	uniqueUsers := make(map[int]models.UserData)
+
+	for _, follower := range followers {
+		//only those followers whose profile is public
+		if follower.Public {
+			uniqueUsers[follower.UserID] = follower
+		}
+	}
+
+	for _, following := range followings {
+		uniqueUsers[following.UserID] = following
+	}
+
+	var users []models.UserData
+	for _, user := range uniqueUsers {
+		users = append(users, user)
+	}
+
 	//setting the currentUser in the users db table as a true to add the current user's name to the response
 	for i := range users {
 		if users[i].FirstName == firstName && users[i].LastName == lastName {
@@ -1761,7 +1791,7 @@ var (
 	mutex       = sync.Mutex{}
 )
 
-func (app *application) ConnectionsHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	// Upgrade the HTTP connection to a WebSocket connection
 	// in order to enable full-duplex communication and support WebSocket-specific features, the HTTP connection needs to be upgraded to a WebSocket connection.
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -1782,7 +1812,6 @@ func (app *application) ConnectionsHandler(w http.ResponseWriter, r *http.Reques
 	mutex.Lock()
 	connections[firstName] = conn
 	mutex.Unlock()
-	fmt.Println(connections)
 	// The function enters a loop to continuously read messages from the client.
 	for {
 		// Read message from the client
@@ -1870,4 +1899,57 @@ func (app *application) handleMessage(r *http.Request, w http.ResponseWriter, se
 	} else {
 		log.Println("No active WebSocket connection found for sender:", senderFirstName)
 	}
+}
+
+func (app *application) UnreadMessagesHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/unread-messages" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	_, _, firstName, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the name"), http.StatusInternalServerError)
+		return
+	}
+
+	unreadMessages, err := app.database.GetUnreadMessages(firstName)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get messages"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, unreadMessages)
+}
+
+func (app *application) MarkMessagesAsReadHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/mark-messages-as-read/" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	firstNameFrom := r.URL.Query().Get("firstNameFrom")
+	_, _, firstNameto, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the name"), http.StatusInternalServerError)
+		return
+	}
+
+	err = app.database.MarkMessagesAsRead(firstNameto, firstNameFrom)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to update messages"), http.StatusInternalServerError)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, err)
 }

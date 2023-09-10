@@ -184,40 +184,6 @@ func (m *SqliteDB) SearchUsers(query string) ([]models.UserData, error) {
 	return users, nil
 }
 
-func (m *SqliteDB) GetUsers() ([]models.UserData, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
-	defer cancel()
-
-	stmt := `SELECT users.user_id, users.email, users.first_name, users.last_name,(CASE WHEN sessions.email IS NULL THEN FALSE ELSE TRUE END) AS online
-		FROM users LEFT JOIN sessions ON users.email = sessions.email`
-
-	rows, err := m.DB.QueryContext(ctx, stmt)
-	if err != nil {
-		return nil, err
-	}
-
-	var users []models.UserData
-
-	for rows.Next() {
-		var userID int
-		var email, firstName, lastName string
-		var online bool
-		err = rows.Scan(&userID, &email, &firstName, &lastName, &online)
-		if err != nil {
-			return nil, err
-		}
-		user := models.UserData{
-			UserID:    userID,
-			Email:     email,
-			FirstName: firstName,
-			LastName:  lastName,
-			Online:    online,
-		}
-		users = append(users, user)
-	}
-	return users, nil
-}
-
 func (m *SqliteDB) GetUser(id int) (*models.UserData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -526,7 +492,7 @@ func (m *SqliteDB) Followers(userID int) ([]models.UserData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT user_id, first_name, last_name FROM users JOIN followers ON user_id = follower_id WHERE following_id = $1 AND request_pending = false`
+	stmt := `SELECT user_id, first_name, last_name, public FROM users JOIN followers ON user_id = follower_id WHERE following_id = $1 AND request_pending = false`
 
 	rows, err := m.DB.QueryContext(ctx, stmt, userID)
 	if err != nil {
@@ -537,7 +503,7 @@ func (m *SqliteDB) Followers(userID int) ([]models.UserData, error) {
 
 	for rows.Next() {
 		var user models.UserData
-		err := rows.Scan(&user.UserID, &user.FirstName, &user.LastName)
+		err := rows.Scan(&user.UserID, &user.FirstName, &user.LastName, &user.Public)
 		if err != nil {
 			return nil, err
 		}
@@ -1178,4 +1144,42 @@ func (m *SqliteDB) GetMessage(firstNameFrom, firstNameTo string) ([]models.Messa
 		messages = append(messages, msg)
 	}
 	return messages, nil
+}
+
+func (m *SqliteDB) GetUnreadMessages(firstNameTo string) ([]models.Message, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT message, first_name_from, first_name_to, date FROM messages WHERE read = 0 AND first_name_to = ?`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, firstNameTo)
+	if err != nil {
+		return nil, err
+	}
+
+	var unreadMessages []models.Message
+	for rows.Next() {
+		var msg models.Message
+		err := rows.Scan(&msg.Message, &msg.FirstNameFrom, &msg.FirstNameTo, &msg.Date)
+		if err != nil {
+			return nil, err
+		}
+
+		unreadMessages = append(unreadMessages, msg)
+	}
+	return unreadMessages, nil
+}
+
+func (m *SqliteDB) MarkMessagesAsRead(firstNameTo, firstNameFrom string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `UPDATE messages SET read = 1 WHERE first_name_to = ? AND first_name_from = ? AND read = 0`
+
+	_, err := m.DB.ExecContext(ctx, stmt, firstNameTo, firstNameFrom)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

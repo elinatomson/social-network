@@ -1,4 +1,4 @@
-body {
+  body {
     margin: 0;
     background-color: #1F2833;
     color: white;
@@ -172,7 +172,7 @@ body {
   }
 
   .send-button {
-    display: block;
+    display: inline-block;
     font-size: 25px;
     color: #fff;
     background-color: #1F2833;
@@ -187,6 +187,41 @@ body {
     max-width: 80%;
     margin-top: 18%;
     margin-left: 10%;
+  }
+
+  .chat-send-button {
+    display: inline-block;
+    font-size: 25px;
+    color: #fff;
+    background-color: #1F2833;
+    border: 1px solid #66FCF1;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Vina Sans', cursive;
+    margin: 0.5rem 0;
+    padding-bottom: 2px;
+    margin-left: 5%;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .close-chat-button {
+    display: inline-block;
+    font-size: 15px;
+    color: #fff;
+    background-color: #1F2833;
+    border: 1px solid rgb(247, 97, 97);
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: 'Vina Sans', cursive;
+    padding-top: 0%;
+    margin-left: 1%;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .close-chat-button:hover {
+    background-color: rgb(247, 97, 97);
   }
 
   .profile-type-button {
@@ -223,7 +258,7 @@ body {
     margin-top: 2%;
   }
   
-  .button:hover, .log-out-button:hover, .custom-file-input:hover, .comment-button:hover, .profile-type-button:hover, .send-button:hover, .accept-button:hover, .follow-button:hover {
+  .button:hover, .log-out-button:hover, .custom-file-input:hover, .comment-button:hover, .profile-type-button:hover, .send-button:hover, .chat-send-button:hover, .accept-button:hover, .follow-button:hover {
     background-color: #45A29E;
     color: #66FCF1;
   }
@@ -277,6 +312,12 @@ body {
     text-align: center;
   }
 
+  .input-box {
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   .user1 {
     font-family: 'Vina Sans', cursive;
     font-size: 40px;
@@ -299,16 +340,22 @@ body {
     border-radius: 20px;
   }
 
+  .envelope {
+    width: 8%;
+    border-radius: 20px;
+    margin-bottom: 3%;
+  }
+
   .user-user1 {
     font-family: 'Vina Sans', cursive;
     font-size: 40px;
     color: #66FCF1;
-    margin-left: 39%;
+    margin-left: 40%;
   }
 
   .user-user2 {
     font-family: 'Orbitron', sans-serif;
-    margin-left: 25%;
+    margin-left: 30%;
   }
 
   .user-avatar{
@@ -380,6 +427,12 @@ body {
     justify-content: space-between;
   }
 
+  .chat-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
   .left-container1 {
     flex: 1;
     margin-left: 30%;
@@ -388,6 +441,11 @@ body {
   .left-container2 {
     flex: 1;
   }
+
+  .left-container3 {
+    flex: 4;
+  }
+
 
   .right-container1 {
     flex: 1;
@@ -488,7 +546,6 @@ body {
     margin-left: 5%;
     text-align: left;
     padding: 1%;
-
   }
 
   .comment-text{
@@ -520,11 +577,14 @@ body {
 
   .chat_users{
     font-family: 'Vina Sans', cursive;
-    margin-top: 5%;
     font-size: 25px;
     color:#66FCF1;
     text-decoration: underline;
     cursor: pointer;
+  }
+
+  .unread{
+    font-size: 15px;
   }
 
   .user{
@@ -549,6 +609,8 @@ body {
   .chat{
     margin-top: 5%;
     font-family: 'Orbitron', sans-serif;
+    display: inline-block;
+    width: 100%;
   }
 
   .chatbox{
@@ -557,25 +619,28 @@ body {
     border-radius: 10px;
     color: black
   }
-  
-  .online {
-    color: #66FCF1
-  }
-
-  .offline {
-    color: rgb(248, 178, 178);
-  }
 
   .chat-messages {
     max-height: 150px;
     overflow: auto;
+    word-break: break-all;
     border: 1px solid #ccc;
-    padding: 10px;
-    font-size: 12px;
+    max-width: 100%;
   }
 
   .message {
-    background-color: #66FCF1;
+    border: 1px solid #66FCF1;
+    margin: 1%;
+    padding: 1%;
+    font-size: 12px;
+    text-align: left;
+    border-radius: 5px;
+    display: inline-block;
+  }
+
+  .unread {
+    font-size: 12px;
+    margin-top: 0%;
   }
 
   h2 {

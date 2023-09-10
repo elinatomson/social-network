@@ -48,10 +48,11 @@ func (app *application) routes() http.Handler {
 	mux.Handle("/group-event/", app.authRequired(http.HandlerFunc(app.GroupEventHandler)))
 	mux.Handle("/going", app.authRequired(http.HandlerFunc(app.GoingHandler)))
 	mux.Handle("/not-going", app.authRequired(http.HandlerFunc(app.NotGoingHandler)))
-	mux.HandleFunc("/ws", app.ConnectionsHandler)
-	//mux.Handle("/ws", app.authRequired(http.HandlerFunc(app.WebsocketHandler)))
+	mux.Handle("/ws", app.authRequired(http.HandlerFunc(app.WebsocketHandler)))
 	mux.Handle("/message", app.authRequired(http.HandlerFunc(app.AddMessageHandler)))
 	mux.Handle("/conversation-history/", app.authRequired(http.HandlerFunc(app.GetMessagesHandler)))
+	mux.Handle("/unread-messages", app.authRequired(http.HandlerFunc(app.UnreadMessagesHandler)))
+	mux.Handle("/mark-messages-as-read/", app.authRequired(http.HandlerFunc(app.MarkMessagesAsReadHandler)))
 
 	return handler
 }

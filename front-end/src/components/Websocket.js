@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { displayErrorMessage } from "../components/ErrorMessage";
 
-function WebSocketComponent({ firstNameTo, firstNameFrom }) {
+function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
   const [ws, setWs] = useState(null);
@@ -21,6 +21,7 @@ function WebSocketComponent({ firstNameTo, firstNameFrom }) {
       const from = eventData.first_name_from;
       const to = eventData.first_name_to;
       handleMessage(message, from, to)
+      messagesAsRead(from)
     };
 
     websocket.onclose = () => {
@@ -50,7 +51,19 @@ function WebSocketComponent({ firstNameTo, firstNameFrom }) {
       });
     }
 
-  }, [firstNameTo]);
+  }, [firstNameTo, firstNameFrom]);
+
+  function messagesAsRead(firstNameFrom) {
+    fetch(`/mark-messages-as-read/?firstNameFrom=${firstNameFrom}`)
+    .then(response => {
+      if (response.ok) {
+        console.log('All messages marked as read.');
+      }
+    })
+    .catch(error => {
+      displayErrorMessage(`${error.message}`);
+    });
+  }
   
   const handleInputChange = (event) => {
     setMessageInput(event.target.value);
@@ -105,25 +118,33 @@ function WebSocketComponent({ firstNameTo, firstNameFrom }) {
     }
   };
 
+  const closingChat = () => {
+    closeChat();
+  };
+
   return (
     <div>
       Chat with {firstNameTo.first_name}
+      <button className="close-chat-button" onClick={closingChat}>
+          close
+      </button>
       <div className="chat-messages" ref={chatContainerRef}>
           {messages.map((msg, index) => (
             <div className="message" key={index}>{msg}</div>
           ))}
         </div>
-      <div className="container">
-        <div className="left-container2">
+      <div className="chat-container">
+        <div className="left-container3">
           <input
             id="message-input"
             type="text"
+            className="input-box"
             value={messageInput}
             onChange={handleInputChange}
           />
         </div>
         <div className="right-container1">
-          <button className="send-button" id="send-button" onClick={sendMessage}>
+          <button className="chat-send-button" id="send-button" onClick={sendMessage}>
             Send
           </button>
         </div>
