@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import WebSocketComponent from './Websocket'; 
+import WebSocketComponent from '../components/Websocket'; 
 import { displayErrorMessage } from "../components/ErrorMessage";
 
 function Users() {

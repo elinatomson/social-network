@@ -1,18 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { displayErrorMessage } from "../components/ErrorMessage";
-
-let socket;
 
 function WebSocketComponent({ firstNameTo, firstNameFrom }) {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
+  const [ws, setWs] = useState(null);
+  const chatContainerRef = useRef(null);
 
   useEffect(() => {
+    const websocket = new WebSocket('ws://localhost:8080/ws');
+    websocket.onopen = () => {
+      console.log('WebSocket connected');
+      setWs(websocket);
+      fetchConversationHistory();
+    };
+
+    websocket.onmessage = (event) => {
+      const eventData = JSON.parse(event.data);
+      const message = eventData.message;
+      const from = eventData.first_name_from;
+      const to = eventData.first_name_to;
+      handleMessage(message, from, to)
+    };
+
+    websocket.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+
+    return () => {
+      websocket.close();
+    };
+
     function fetchConversationHistory() {
       fetch(`/conversation-history/?firstNameTo=${firstNameTo.first_name}`)
       .then(response => response.json())
       .then(messagesData => {  
-        console.log(messagesData)
         if (messagesData && messagesData.length > 0) {
           const messages = messagesData.map(message => {
             var formattedDate = new Date(message.date).toLocaleString();
@@ -28,62 +50,34 @@ function WebSocketComponent({ firstNameTo, firstNameFrom }) {
       });
     }
 
-    function handleMessage(event) {
-      const messageData = JSON.parse(event.data);
-      const messageText = messageData.message;
-      const senderName = messageData.first_name_from;
-      const formattedTime = new Date(messageData.date).toLocaleString();
-
-      const formattedMessage = `${formattedTime} - ${senderName}: ${messageText}`;
-
-      setMessages((prevMessages) => [...prevMessages, formattedMessage]);
-
-      // Automatically scroll to the bottom of the message box
-      const messageBox = document.getElementById("message-box");
-      messageBox.scrollTop = messageBox.scrollHeight;
-    }
-
-    socket = new WebSocket('ws://localhost:3000/ws');
-
-    socket.addEventListener('open', () => {
-      console.log('WebSocket connection established.');
-      fetchConversationHistory({ firstNameTo })
-    });
-
-    socket.addEventListener('error', (error) => {
-      console.error('WebSocket error:', error);
-    });
-
-    socket.addEventListener('message', handleMessage);
-
-    return () => {
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.close();
-        console.log('WebSocket connection closed.');
-      }
-    };
   }, [firstNameTo]);
+  
+  const handleInputChange = (event) => {
+    setMessageInput(event.target.value);
+  };
 
-  function handleSendMessage(event) {
-    event.preventDefault();
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      console.error('WebSocket connection not open.');
-      return;
+  function handleMessage(message, from, to) {
+    let senderName = from;
+    if (from === to) {
+      senderName = from;
     }
-
+    const messageText = message;
     const date = new Date();
+    const formattedTime = new Date(date).toLocaleString();
+    const formattedMessage = `${formattedTime} - ${senderName}: ${messageText}`;
+    setMessages((prevMessages) => [...prevMessages, formattedMessage]);  
+    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+  }
+
+  const sendMessage = () => {
+    if (messageInput.trim() !== '') {
     const data = {
       message: messageInput,
       first_name_from: firstNameFrom,
       first_name_to: firstNameTo.first_name,
-      date: date,
+      date: new Date(),
     };
-
-    const formattedTime = date.toLocaleString();
-    const formattedMessage = `${formattedTime} - ${firstNameFrom}: ${messageInput}`;
-    setMessages((prevMessages) => [...prevMessages, formattedMessage]);
-
-    socket.send(JSON.stringify(data));
+    ws.send(JSON.stringify(data));
     setMessageInput('');
 
     fetch('/message', {
@@ -106,27 +100,30 @@ function WebSocketComponent({ firstNameTo, firstNameFrom }) {
         }
       })
       .catch((error) => {
-        displayErrorMessage(`An error occurred while sending message: ${error.message}`);
+        displayErrorMessage(`${error.message}`);
       });
-  }
+    }
+  };
 
   return (
     <div>
       Chat with {firstNameTo.first_name}
-      <div>
-      <textarea className="chatbox" id="message-box" value={messages.join('\n')} readOnly />
-      </div>
+      <div className="chat-messages" ref={chatContainerRef}>
+          {messages.map((msg, index) => (
+            <div className="message" key={index}>{msg}</div>
+          ))}
+        </div>
       <div className="container">
         <div className="left-container2">
           <input
             id="message-input"
             type="text"
             value={messageInput}
-            onChange={(e) => setMessageInput(e.target.value)}
+            onChange={handleInputChange}
           />
         </div>
         <div className="right-container1">
-          <button className="send-button" id="send-button" onClick={handleSendMessage}>
+          <button className="send-button" id="send-button" onClick={sendMessage}>
             Send
           </button>
         </div>
