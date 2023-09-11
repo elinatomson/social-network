@@ -9,12 +9,15 @@ import CreatePost from "../components/CreatePost";
 import GroupPosts from "../components/GroupPosts";
 import CreateEvent from "../components/CreateEvent";
 import GroupEvents from "../components/GroupEvents";
+import WebSocketComponentForGroup from '../components/WebsocketForGroup'; 
 
 function Group() {
   const navigate = useNavigate();
   const [groupData, setGroupData] = useState({});
+  const [firstNameFrom, setFirstNameFrom] = useState(null);
   const { groupId } = useParams();
   const [isMember, setIsMember] = useState(false);
+  const [showFields, setShowFields] = useState(false);
   
   const token = document.cookie
   .split("; ")
@@ -45,12 +48,17 @@ function Group() {
           const groupMembers = data.group_members || [];
           const groupCreator = data.group.user_id;
           setIsMember(groupMembers.includes(currentUserID) || currentUserID === groupCreator);
+          setFirstNameFrom(data.current_user)
       })
       .catch((error) => {
           displayErrorMessage(`${error.message}`);
       });
     }
   }, [navigate, groupId, token]);
+
+  const handleToggleFields = () => {
+    setShowFields(!showFields);
+  };
 
   return (
       <div className="app-container">
@@ -83,6 +91,12 @@ function Group() {
                       </div>
                       )}
                       <InviteNewMember groupId={parseInt(groupId)} />
+                      <div className="group-chat" onClick={handleToggleFields}>Open group chatroom</div>
+                      {showFields && (
+                      <div className="chat">
+                        {<WebSocketComponentForGroup groupName={groupData.group.title} firstNameFrom={firstNameFrom}/>}
+                      </div>
+                         )}
                     </div>
                   )}
                 </div>
@@ -95,8 +109,11 @@ function Group() {
                       {groupData.group && groupData.group.description}
                     </p>
                     )}
-                    {!isMember && (
+                    {!isMember && !groupData.request_pending &&(
                       <RequestToJoinGroup groupId={parseInt(groupId)} />
+                    )}
+                    {!isMember && groupData.request_pending && (
+                        <div className="center"> Your request is waiting to be accepted by the group owner </div>
                     )}
                     {isMember && (
                       <CreateEvent groupId={parseInt(groupId)} />

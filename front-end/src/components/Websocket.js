@@ -133,7 +133,7 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
       </button>
       <div className="chat-messages" ref={chatContainerRef}>
           {messages.map((msg, index) => (
-            <div className="message" key={index}>{msg}</div>
+            <div className="chat-message" key={index}>{msg}</div>
           ))}
         </div>
       <div className="chat-container">

@@ -15,6 +15,7 @@ function User() {
   const [userData, setUserData] = useState({});
   const { userId } = useParams();
   const [isFollowing, setIsFollowing] = useState(false); 
+  const [pendingFollower, setPendingFollower] = useState(false); 
 
   const token = document.cookie
   .split("; ")
@@ -53,6 +54,16 @@ function User() {
         const user = data.user_data.user_id;
         const following = followers.some(follower => follower.user_id === currentUserID) || currentUserID === user;
         setIsFollowing(following);
+        if (data.pending_followers && data.pending_followers.length > 0) {
+          const isCurrentUserPending = data.pending_followers.some((follower) => follower.user_id === currentUserID);
+          if (isCurrentUserPending) {
+            setPendingFollower(true);
+          } else {
+            setPendingFollower(false);
+          }
+        } else {
+          setPendingFollower(false); 
+        }
       })
       .catch((error) => {
         displayErrorMessage(`${error.message}`);
@@ -138,7 +149,7 @@ function User() {
                     </div>
                   ) : null}
                   <div>
-                    <Follow userData={!userData.user_data.public} userId={parseInt(userId)} />
+                    <Follow userData={!userData.user_data.public} userId={parseInt(userId)} pendingFollower={pendingFollower} />
                   </div>
                   {userData.user_data.public || isFollowing ?  (
                     <>

@@ -4,13 +4,11 @@ import Avatar from '../images/avatar.PNG';
 import FollowRequests from "../components/FollowRequests";
 import GroupRequests from "../components/GroupRequests";
 import GroupInvitations from "../components/GroupInvitations";
-import Search from "../components/Search";
 import { displayErrorMessage } from "../components/ErrorMessage";
 import GroupEventNotifications from './GroupEventNotifications';
 
 function Header() {
   const [userData, setUserData] = useState(null);
-  const [searchResults, setSearchResults] = useState(null);
 
   useEffect(() => {
       fetch("/main")
@@ -57,19 +55,6 @@ function Header() {
             <div className="right-container">
               <Link className="log-out-button" to="/main">Main Page</Link>
               <Link className="log-out-button" to="/logout">Log Out</Link>
-              <Search setSearchResults={setSearchResults}/>
-              <div className="search-results">
-                {searchResults !== null && searchResults.length > 0 && (
-                  searchResults.map((result) => (
-                    <div key={result.user_id} className="search-result-item">
-                      <Link className="link-btn" to={`/user/${result.user_id}`} >{result.first_name} {result.last_name}</Link>
-                    </div>
-                  ))
-                )}
-                {searchResults !== null && searchResults.length === 0 && (
-                  <p>No results found for your search query.</p>
-                )}
-              </div>
             </div>
           </div>
           ) : (

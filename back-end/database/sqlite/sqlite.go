@@ -513,6 +513,31 @@ func (m *SqliteDB) Followers(userID int) ([]models.UserData, error) {
 	return followers, nil
 }
 
+func (m *SqliteDB) PendingFollowers(userID int) ([]models.UserData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT user_id, first_name, last_name, public FROM users JOIN followers ON user_id = follower_id WHERE following_id = $1 AND request_pending = true`
+
+	rows, err := m.DB.QueryContext(ctx, stmt, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var followers []models.UserData
+
+	for rows.Next() {
+		var user models.UserData
+		err := rows.Scan(&user.UserID, &user.FirstName, &user.LastName, &user.Public)
+		if err != nil {
+			return nil, err
+		}
+		followers = append(followers, user)
+	}
+
+	return followers, nil
+}
+
 func (m *SqliteDB) FollowRequests(userID int) ([]models.FollowRequest, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -819,6 +844,22 @@ func (m *SqliteDB) GroupRequests(userID int) ([]models.GroupMembers, error) {
 	}
 
 	return groupRequests, nil
+}
+
+func (m *SqliteDB) CheckPending(userID, groupID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT EXISTS ( SELECT 1 FROM groupmembers WHERE group_id = $1 AND member_id = $2 AND request_pending = true)`
+
+	var isPending bool
+	row := m.DB.QueryRowContext(ctx, stmt, groupID, userID)
+	err := row.Scan(&isPending)
+	if err != nil {
+		return false, err
+	}
+
+	return isPending, nil
 }
 
 func (m *SqliteDB) AcceptGroupRequest(groupID, memberID int) error {

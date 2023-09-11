@@ -3,7 +3,7 @@ import { displayErrorMessage } from "../components/ErrorMessage";
 import Picker from '@emoji-mart/react'
 import data from '@emoji-mart/data/sets/14/twitter.json'
 
-function WebSocketComponentForGroup({ groupName, firstNameFrom, closeChat }) {
+function WebSocketComponentForGroup({ groupName, firstNameFrom }) {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
   const [ws, setWs] = useState(null);
@@ -11,7 +11,7 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom, closeChat }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
-    const websocket = new WebSocket('ws://localhost:8080/chatroom/?group={groupName}');
+    const websocket = new WebSocket(`ws://localhost:8080/chatroom/?group=${groupName}`);
     websocket.onopen = () => {
       console.log('WebSocket connected');
       setWs(websocket);
@@ -21,10 +21,9 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom, closeChat }) {
     websocket.onmessage = (event) => {
       const eventData = JSON.parse(event.data);
       const message = eventData.message;
-      const from = firstNameFrom;
+      const from = eventData.first_name_from;
       const to = eventData.first_name_to;
       handleMessage(message, from, to)
-      //messagesAsRead(from)
     };
 
     websocket.onclose = () => {
@@ -36,7 +35,7 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom, closeChat }) {
     };
 
     function fetchConversationHistory() {
-        fetch(`/group-conversation-history/?groupName=${groupName.title}`)
+        fetch(`/group-conversation-history/?groupName=${groupName}`)
         .then(response => response.json())
         .then(messagesData => { 
             if (messagesData && messagesData.length > 0) {
@@ -55,28 +54,13 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom, closeChat }) {
     }
 
   }, [groupName, firstNameFrom]);
-
-  /*function messagesAsRead(firstNameFrom) {
-    fetch(`/mark-messages-as-read/?firstNameFrom=${firstNameFrom}`)
-    .then(response => {
-      if (response.ok) {
-        console.log('All messages marked as read.');
-      }
-    })
-    .catch(error => {
-      displayErrorMessage(`${error.message}`);
-    });
-  }*/
   
   const handleInputChange = (event) => {
     setMessageInput(event.target.value);
   };
 
   function handleMessage(message, from, to) {
-    let senderName = from;
-    if (from === to) {
-      senderName = from;
-    }
+    const senderName = from;
     const messageText = message;
     const date = new Date();
     const formattedTime = new Date(date).toLocaleString();
@@ -90,7 +74,7 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom, closeChat }) {
     const data = {
       message: messageInput,
       first_name_from: firstNameFrom,
-      first_name_to: groupName.title,
+      first_name_to: groupName,
       date: new Date(),
     };
     ws.send(JSON.stringify(data));
@@ -121,19 +105,11 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom, closeChat }) {
     }
   };
 
-  const closingChat = () => {
-    closeChat();
-  };
-
   return (
     <div>
-      Chatroom for {groupName.title}
-      <button className="close-chat-button" onClick={closingChat}>
-          close
-      </button>
       <div className="chat-messages" ref={chatContainerRef}>
           {messages.map((msg, index) => (
-            <div className="message" key={index}>{msg}</div>
+            <div className="chat-message" key={index}>{msg}</div>
           ))}
         </div>
       <div className="chat-container">

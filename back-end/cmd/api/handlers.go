@@ -324,6 +324,12 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	pendingFollowers, err := app.database.PendingFollowers(user.UserID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+
 	following, err := app.database.Following(user.UserID)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
@@ -376,17 +382,19 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userDataWithPosts := struct {
-		CurrentUser int               `json:"current_user"`
-		UserData    *models.UserData  `json:"user_data"`
-		Followers   []models.UserData `json:"followers"`
-		Following   []models.UserData `json:"following"`
-		Posts       []models.Post     `json:"posts"`
+		CurrentUser      int               `json:"current_user"`
+		UserData         *models.UserData  `json:"user_data"`
+		Followers        []models.UserData `json:"followers"`
+		PendingFollowers []models.UserData `json:"pending_followers"`
+		Following        []models.UserData `json:"following"`
+		Posts            []models.Post     `json:"posts"`
 	}{
-		CurrentUser: userID,
-		UserData:    user,
-		Followers:   followers,
-		Following:   following,
-		Posts:       filteredPosts,
+		CurrentUser:      userID,
+		UserData:         user,
+		Followers:        followers,
+		PendingFollowers: pendingFollowers,
+		Following:        following,
+		Posts:            filteredPosts,
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, userDataWithPosts)
@@ -958,35 +966,15 @@ func (app *application) AllGroupsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	userID, _, _, _, err := app.database.DataFromSession(r)
-	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
-		return
-	}
-
-	user, err := app.database.GetUserByID(userID)
-	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Failed to get user data for member ID"), http.StatusInternalServerError)
-		return
-	}
-
 	var allGroups []models.Group
 
-	allGroups, err = app.database.AllGroups()
+	allGroups, err := app.database.AllGroups()
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
 		return
 	}
 
-	groupsWithCurrentUser := struct {
-		CurrentUser *models.UserData `json:"current_user"`
-		Groups      []models.Group   `json:"groups"`
-	}{
-		CurrentUser: user,
-		Groups:      allGroups,
-	}
-
-	_ = app.writeJSON(w, http.StatusOK, groupsWithCurrentUser)
+	_ = app.writeJSON(w, http.StatusOK, allGroups)
 }
 
 func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
@@ -997,7 +985,7 @@ func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/group/")
 	id1, err := strconv.Atoi(id)
 
-	userID, _, _, _, err := app.database.DataFromSession(r)
+	userID, _, firstName, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error getting data from user sessions"), http.StatusInternalServerError)
 		return
@@ -1025,18 +1013,28 @@ func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
 		usersData = append(usersData, user)
 	}
 
+	requestPending, err := app.database.CheckPending(userID, group.GroupID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error checking pending status"), http.StatusInternalServerError)
+		return
+	}
+
 	type GroupResponse struct {
-		UserID       int                `json:"userID"`
-		Group        *models.Group      `json:"group"`
-		GroupMembers []int              `json:"group_members"`
-		UserData     []*models.UserData `json:"userdata"`
+		UserID         int                `json:"userID"`
+		CurrentUser    string             `json:"current_user"`
+		Group          *models.Group      `json:"group"`
+		GroupMembers   []int              `json:"group_members"`
+		UserData       []*models.UserData `json:"userdata"`
+		RequestPending bool               `json:"request_pending"`
 	}
 
 	groupResponse := GroupResponse{
-		UserID:       userID,
-		Group:        group,
-		GroupMembers: groupMembers,
-		UserData:     usersData,
+		UserID:         userID,
+		CurrentUser:    firstName,
+		Group:          group,
+		GroupMembers:   groupMembers,
+		UserData:       usersData,
+		RequestPending: requestPending,
 	}
 
 	app.writeJSON(w, http.StatusOK, groupResponse)

@@ -84,7 +84,7 @@ function Users() {
 
   return (
     <div className="users">
-      <div className="chat_users" onClick={handleToggleUsers}>Users for chat
+      <div className="chat_users" onClick={handleToggleUsers}>Open list of users to chat
         {Object.values(unreadMessageCounts).some(count => count > 0) && (
             <img className="envelope" src={Envelope} alt="envelope"></img>
           )}
