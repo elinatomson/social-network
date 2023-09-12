@@ -9,6 +9,8 @@ function Event() {
     const [eventData, setEventData] = useState({});
     const { eventId } = useParams();
     const [updateEventData, setUpdateEventData] = useState(false);
+    const [isGoing, setIsGoing] = useState(false);
+    const [notGoing, setNotGoing] = useState(false);
     
     const token = document.cookie
     .split("; ")
@@ -32,6 +34,11 @@ function Event() {
         })
         .then((data) => {
             setEventData(data);
+            if (data.going) {
+                setIsGoing(true);
+            } else if (data.not_going) {
+                setNotGoing(true);
+            } 
         })
         .catch((error) => {
             displayErrorMessage(`${error.message}`);
@@ -65,6 +72,8 @@ function Event() {
         fetch('/going', requestOptions)
         .then((response) => response.json())
         .then(() => {
+            setIsGoing(true); 
+            setNotGoing(false); 
             setUpdateEventData((prev) => !prev); 
         })
         .catch((error) => {
@@ -90,13 +99,14 @@ function Event() {
         fetch('/not-going', requestOptions)
         .then((response) => response.json())
         .then(() => {
+            setIsGoing(false);
+            setNotGoing(true); 
             setUpdateEventData((prev) => !prev); 
         })
         .catch((error) => {
             displayErrorMessage(`${error.message}`);
         });
     }
-
 
     return (
         <div className="app-container">
@@ -159,12 +169,12 @@ function Event() {
                             </p>
                             <div className="container">
                                 <div className="left-container2">
-                                    <button className="follow-button" onClick={() => handleGoing(eventData.event.event_id, eventData.event.participant_id)}>
+                                    <button className="follow-button" onClick={() => handleGoing(eventData.event.event_id, eventData.event.participant_id)}     disabled={isGoing}>
                                     Going
                                     </button>
                                 </div>
                                 <div className="right-container1">
-                                    <button className="follow-button" onClick={() => handleNotGoing(eventData.event.event_id, eventData.event.participant_id)}>
+                                    <button className="follow-button" onClick={() => handleNotGoing(eventData.event.event_id, eventData.event.participant_id)}     disabled={notGoing}>
                                     Not going
                                     </button>
                                 </div>

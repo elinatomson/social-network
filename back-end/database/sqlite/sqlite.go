@@ -1078,7 +1078,7 @@ func (m *SqliteDB) IsGoing(userID, eventID int) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT EXISTS ( SELECT 1 FROM eventparticipants WHERE event_id = $1 AND participant_id = $2)`
+	stmt := `SELECT EXISTS ( SELECT 1 FROM eventparticipants WHERE event_id = $1 AND participant_id = $2 AND going = true)`
 
 	var isGoing bool
 	row := m.DB.QueryRowContext(ctx, stmt, eventID, userID)
@@ -1122,7 +1122,7 @@ func (m *SqliteDB) IsNotGoing(userID, eventID int) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT EXISTS ( SELECT 0 FROM eventparticipants WHERE event_id = $1 AND participant_id = $2)`
+	stmt := `SELECT EXISTS ( SELECT 1 FROM eventparticipants WHERE event_id = $1 AND participant_id = $2 AND going = false)`
 
 	var NotGoing bool
 	row := m.DB.QueryRowContext(ctx, stmt, eventID, userID)

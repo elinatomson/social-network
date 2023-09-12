@@ -149,7 +149,7 @@ function User() {
                     </div>
                   ) : null}
                   <div>
-                    <Follow userData={!userData.user_data.public} userId={parseInt(userId)} pendingFollower={pendingFollower} />
+                    <Follow userData={!userData.user_data.public} userId={parseInt(userId)} pendingFollower={pendingFollower} following={isFollowing}/>
                   </div>
                   {userData.user_data.public || isFollowing ?  (
                     <>

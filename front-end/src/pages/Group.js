@@ -109,11 +109,8 @@ function Group() {
                       {groupData.group && groupData.group.description}
                     </p>
                     )}
-                    {!isMember && !groupData.request_pending &&(
-                      <RequestToJoinGroup groupId={parseInt(groupId)} />
-                    )}
-                    {!isMember && groupData.request_pending && (
-                        <div className="center"> Your request is waiting to be accepted by the group owner </div>
+                    {!isMember && (
+                      <RequestToJoinGroup groupId={parseInt(groupId)} pendingRequest={groupData.request_pending}/>
                     )}
                     {isMember && (
                       <CreateEvent groupId={parseInt(groupId)} />

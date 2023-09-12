@@ -1624,16 +1624,32 @@ func (app *application) GroupEventHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	isGoing, err := app.database.IsGoing(userID, id1)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to check if user is going"), http.StatusInternalServerError)
+		return
+	}
+
+	isNotGoing, err := app.database.IsNotGoing(userID, id1)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to check if user is going"), http.StatusInternalServerError)
+		return
+	}
+
 	response := struct {
 		IsGroupMember  bool                       `json:"is_group_member"`
 		IsGroupCreator bool                       `json:"is_group_creator"`
 		Event          *models.Event              `json:"event"`
 		Participants   []models.EventParticipants `json:"participants"`
+		Going          bool                       `json:"going"`
+		NotGoing       bool                       `json:"not_going"`
 	}{
 		IsGroupMember:  isGroupMember,
 		IsGroupCreator: isGroupCreator,
 		Event:          event,
 		Participants:   participants,
+		Going:          isGoing,
+		NotGoing:       isNotGoing,
 	}
 
 	app.writeJSON(w, http.StatusOK, response)

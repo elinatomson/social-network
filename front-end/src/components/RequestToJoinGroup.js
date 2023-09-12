@@ -1,7 +1,9 @@
 import { displayErrorMessage } from "../components/ErrorMessage";
-import { displayMessage } from "../components/ErrorMessage";
+import React, { useState, useEffect } from "react";
 
-function RequestToJoinGroup ({ groupId }) {
+function RequestToJoinGroup ({ groupId, pendingRequest }) {
+    const [isPending, setIsPending] = useState(pendingRequest);
+
     const handleJoinLeaveGroup = () => {
         const requestData = {
             group_id: groupId, 
@@ -18,28 +20,32 @@ function RequestToJoinGroup ({ groupId }) {
 
         fetch('/request-to-join-group', requestOptions)
         .then((response) => {
-        if (!response.ok) {
-            return response.json().then((data) => {
-            throw new Error(data.message);
-            })
+        if (response.ok) {
+            setIsPending(!isPending); 
         } else {
             return response.json();
         }
-        })
-        .then((data) => {
-            displayMessage(`Your request has been sent to the group owner`);
         })
         .catch((error) => {
             displayErrorMessage(`${error.message}`);
         });
     };
 
+    useEffect(() => {
+        setIsPending(pendingRequest); 
+    }, [pendingRequest]);
+
     return (
         <div>
-            <button className="follow-button" onClick={handleJoinLeaveGroup}>
-                Request To Join
-            </button>
-            <div id="message"></div>
+            {isPending ? (
+                <button className="follow-button" onClick={handleJoinLeaveGroup}>
+                    Cancel join request
+                </button>
+            ) : (
+                <button className="follow-button" onClick={handleJoinLeaveGroup}>
+                    Request To Join
+                </button>
+            )}
             <div id="error" className="alert"></div>
         </div>
     )

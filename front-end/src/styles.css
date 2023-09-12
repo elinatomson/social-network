@@ -270,6 +270,13 @@
     background-color: #45A29E;
     color: #66FCF1;
   }
+
+  .follow-button[disabled] {
+    background-color: #ccc; 
+    color: #999; 
+    border-color:#999 ;
+    cursor: not-allowed; 
+  }
   
   .link-btn {
     font-family: 'Orbitron', sans-serif;
