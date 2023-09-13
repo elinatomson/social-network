@@ -4,15 +4,10 @@ import { displayErrorMessage } from "./ErrorMessage";
 import { Link } from 'react-router-dom';
 
 function Groups() {
-    const [showGroups, setShowGroups] = useState(false);
     const [groups, setGroups] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
     const { groupContent } = location.state || {};
-
-    const handleToggleGroups = () => {
-        setShowGroups(!showGroups);
-    };
 
     useEffect(() => {
     fetch('/all-groups')
@@ -29,8 +24,7 @@ function Groups() {
 
     return (
         <div>
-            <div className="groups" onClick={handleToggleGroups} >Open list of all groups</div>
-            {showGroups && (
+            <div className="group-list" >List of all groups</div>
             <div>
                 <div id="error" className="alert"></div>
                 {groups.length === 0 ? (
@@ -47,7 +41,6 @@ function Groups() {
                     </div>
                 )}
             </div>
-            )}
         </div>
     );
 }

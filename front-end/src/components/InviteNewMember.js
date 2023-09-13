@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { displayErrorMessage } from "./ErrorMessage";
+import { displayMessage } from "./ErrorMessage";
 import Search from "../components/Search";
 
 function InviteNewMember({ groupId }) {
@@ -32,6 +33,7 @@ function InviteNewMember({ groupId }) {
       if (response.ok) {
         setSearchResults(null);
         setSelectedUser(null);
+        displayMessage(`Invitation sent`);
       } else {
         return response.json(); 
       }
@@ -69,6 +71,7 @@ function InviteNewMember({ groupId }) {
       </div>
     <div id="error" className="alert"></div>
     <button className="log-out-button" type="submit">Invite</button>
+    <div id="message"></div>
   </form>
   );
 }

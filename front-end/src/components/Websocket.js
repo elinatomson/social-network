@@ -72,6 +72,12 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
     setMessageInput(event.target.value);
   };
 
+  const handleKeyDown = (event) => {
+    if (event.keyCode === 13) {
+      sendMessage()
+    }
+  }
+
   function handleMessage(message, from, to) {
     let senderName = from;
     if (from === to) {
@@ -121,6 +127,16 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
     }
   };
 
+  const messagesEndRef = useRef(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages]);
+
   const closingChat = () => {
     closeChat();
   };
@@ -135,6 +151,7 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
           {messages.map((msg, index) => (
             <div className="chat-message" key={index}>{msg}</div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
       <div className="chat-container">
         <div className="left-container3">
@@ -144,6 +161,7 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
             className="input-box"
             value={messageInput}
             onChange={handleInputChange}
+            onKeyDown={(e) => handleKeyDown(e) }
           />
           <button
             className="emoji-button"

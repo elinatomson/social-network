@@ -148,11 +148,11 @@ func (m *SqliteDB) GetUserDataByEmail(email string) (*models.UserData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT email, first_name, last_name, date_of_birth, avatar, nickname, about_me FROM users WHERE email = $1 LIMIT 1`
+	stmt := `SELECT email, first_name, last_name, date_of_birth, avatar, nickname, about_me, public FROM users WHERE email = $1 LIMIT 1`
 
 	row := m.DB.QueryRowContext(ctx, stmt, email)
 	userData := &models.UserData{}
-	err := row.Scan(&userData.Email, &userData.FirstName, &userData.LastName, &userData.DateOfBirth, &userData.Avatar, &userData.Nickname, &userData.AboutMe)
+	err := row.Scan(&userData.Email, &userData.FirstName, &userData.LastName, &userData.DateOfBirth, &userData.Avatar, &userData.Nickname, &userData.AboutMe, &userData.Public)
 	if err != nil {
 		return nil, err
 	}

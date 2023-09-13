@@ -120,7 +120,7 @@ function Register () {
                         <p className="alert">Please fill in the last name.</p>
                       )}
                     <label htmlFor="dateOfBirth">Date of Birth*</label>
-                    <input value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} type="date" id="dateOfBirth" name="date_of_birth" />
+                    <input value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} type="date" id="dateOfBirth" name="date_of_birth" max={new Date().toISOString().split('T')[0]}/>
                       {errors.includes("date_of_birth") && (
                         <p className="alert">Please select a date of birth.</p>
                       )}

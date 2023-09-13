@@ -59,6 +59,22 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom }) {
     setMessageInput(event.target.value);
   };
 
+  const handleKeyDown = (event) => {
+    if (event.keyCode === 13) {
+      sendMessage()
+    }
+  }
+  
+  const messagesEndRef = useRef(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages]);
+
   function handleMessage(message, from, to) {
     const senderName = from;
     const messageText = message;
@@ -111,6 +127,7 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom }) {
           {messages.map((msg, index) => (
             <div className="chat-message" key={index}>{msg}</div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
       <div className="chat-container">
         <div className="left-container3">
@@ -120,6 +137,7 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom }) {
             className="input-box"
             value={messageInput}
             onChange={handleInputChange}
+            onKeyDown={(e) => handleKeyDown(e) }
           />
           <button
             className="emoji-button"

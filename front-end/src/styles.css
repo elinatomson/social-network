@@ -324,7 +324,6 @@
   .message {
     font-family: 'Orbitron', sans-serif;
     font-size: 20px;
-    text-align: center;
   }
 
   .input-box {
@@ -590,6 +589,12 @@
   .following{
     font-family: 'Vina Sans', cursive;
     margin-top: 5%;
+    font-size: 25px;
+    color:#66FCF1
+  }
+
+  .group-list{
+    font-family: 'Vina Sans', cursive;
     font-size: 25px;
     color:#66FCF1
   }
