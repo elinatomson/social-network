@@ -1874,7 +1874,7 @@ func (app *application) WebsocketHandler(w http.ResponseWriter, r *http.Request)
 		// Read message from the client
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			log.Println("Failed to read message:", err)
+			log.Println(err)
 			break
 		}
 

@@ -7,7 +7,6 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom }) {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
   const [ws, setWs] = useState(null);
-  const chatContainerRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
@@ -65,15 +64,14 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom }) {
     }
   }
   
-  const messagesEndRef = useRef(null)
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+  const chatParent = useRef(null);
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages]);
+    const domNode = chatParent.current;
+    if (domNode) {
+      domNode.scrollTop = domNode.scrollHeight;
+    }
+  })
 
   function handleMessage(message, from, to) {
     const senderName = from;
@@ -82,7 +80,6 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom }) {
     const formattedTime = new Date(date).toLocaleString();
     const formattedMessage = `${formattedTime} - ${senderName}: ${messageText}`;
     setMessages((prevMessages) => [...prevMessages, formattedMessage]);  
-    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
   }
 
   const sendMessage = () => {
@@ -123,11 +120,10 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom }) {
 
   return (
     <div>
-      <div className="chat-messages" ref={chatContainerRef}>
+      <div className="chat-messages" ref={chatParent}>
           {messages.map((msg, index) => (
             <div className="chat-message" key={index}>{msg}</div>
           ))}
-          <div ref={messagesEndRef} />
         </div>
       <div className="chat-container">
         <div className="left-container3">

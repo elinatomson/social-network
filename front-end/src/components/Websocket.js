@@ -7,7 +7,6 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
   const [ws, setWs] = useState(null);
-  const chatContainerRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
@@ -31,10 +30,6 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
       console.log('WebSocket disconnected');
     };
 
-    return () => {
-      websocket.close();
-    };
-
     function fetchConversationHistory() {
       fetch(`/conversation-history/?firstNameTo=${firstNameTo.first_name}`)
       .then(response => response.json())
@@ -54,7 +49,11 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
       });
     }
 
-  }, [firstNameTo, firstNameFrom]);
+    return () => {
+      websocket.close();
+    };
+
+  }, [firstNameTo]);
 
   function messagesAsRead(firstNameFrom) {
     fetch(`/mark-messages-as-read/?firstNameFrom=${firstNameFrom}`)
@@ -88,7 +87,6 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
     const formattedTime = new Date(date).toLocaleString();
     const formattedMessage = `${formattedTime} - ${senderName}: ${messageText}`;
     setMessages((prevMessages) => [...prevMessages, formattedMessage]);  
-    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
   }
 
   const sendMessage = () => {
@@ -127,15 +125,14 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
     }
   };
 
-  const messagesEndRef = useRef(null)
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+  const chatParent = useRef(null);
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages]);
+     const domNode = chatParent.current;
+     if (domNode) {
+        domNode.scrollTop = domNode.scrollHeight;
+     }
+  })
 
   const closingChat = () => {
     closeChat();
@@ -147,11 +144,10 @@ function WebSocketComponent({ firstNameTo, firstNameFrom, closeChat }) {
       <button className="close-chat-button" onClick={closingChat}>
           close
       </button>
-      <div className="chat-messages" ref={chatContainerRef}>
+      <div className="chat-messages" ref={chatParent}> 
           {messages.map((msg, index) => (
             <div className="chat-message" key={index}>{msg}</div>
           ))}
-          <div ref={messagesEndRef} />
         </div>
       <div className="chat-container">
         <div className="left-container3">
