@@ -12,8 +12,7 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/logout", app.LogOutHandler)
 
 	fileServer := http.FileServer(http.Dir("./database/images"))
-	mux.Handle("/images/", http.StripPrefix("/images/", fileServer))
-
+	mux.Handle("/images/", app.authRequired(http.StripPrefix("/images/", fileServer)))
 	mux.Handle("/profile", app.authRequired(http.HandlerFunc(app.ProfileHandler)))
 	mux.Handle("/profile-type", app.authRequired(http.HandlerFunc(app.ProfileTypeHandler)))
 	mux.Handle("/main", app.authRequired(http.HandlerFunc(app.MainPageHandler)))
@@ -24,6 +23,7 @@ func (app *application) routes() http.Handler {
 	mux.Handle("/all-posts", app.authRequired(http.HandlerFunc(app.AllPostsHandler)))
 	mux.Handle("/create-comment", app.authRequired(http.HandlerFunc(app.CommentHandler)))
 	mux.Handle("/follow", app.authRequired(http.HandlerFunc(app.FollowHandler)))
+	mux.Handle("/follower-check", app.authRequired(http.HandlerFunc(app.FollowerHandler)))
 	mux.Handle("/following", app.authRequired(http.HandlerFunc(app.FollowingHandler)))
 	mux.Handle("/followers", app.authRequired(http.HandlerFunc(app.FollowersHandler)))
 	mux.Handle("/follow-requests", app.authRequired(http.HandlerFunc(app.FollowRequestsHandler)))

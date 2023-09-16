@@ -408,7 +408,7 @@ func (m *SqliteDB) IsFollowing(userID, followingID int) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-	stmt := `SELECT EXISTS ( SELECT 1 FROM followers WHERE follower_id = $1 AND following_id = $2)`
+	stmt := `SELECT EXISTS ( SELECT 1 FROM followers WHERE follower_id = $1 AND following_id = $2 AND request_pending = false)`
 
 	var isFollowing bool
 	row := m.DB.QueryRowContext(ctx, stmt, userID, followingID)
@@ -418,6 +418,25 @@ func (m *SqliteDB) IsFollowing(userID, followingID int) (bool, error) {
 	}
 
 	return isFollowing, nil
+}
+
+func (m *SqliteDB) IsPending(userID, followingID int) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	stmt := `SELECT request_pending FROM followers WHERE follower_id = $1 AND following_id = $2 LIMIT 1`
+
+	var isPending bool
+	row := m.DB.QueryRowContext(ctx, stmt, userID, followingID)
+	err := row.Scan(&isPending)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return isPending, nil
 }
 
 func (m *SqliteDB) FollowNotPublicUser(followerID, followingID int) error {
@@ -901,13 +920,11 @@ func (m *SqliteDB) CreateEvent(event *models.Event) (int, error) {
 		return 0, err
 	}
 
-	// Retrieve the last inserted ID
 	eventID, err := result.LastInsertId()
 	if err != nil {
 		return 0, err
 	}
-
-	// Return the generated EventID
+	
 	return int(eventID), nil
 }
 

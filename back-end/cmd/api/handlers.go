@@ -324,12 +324,6 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pendingFollowers, err := app.database.PendingFollowers(user.UserID)
-	if err != nil {
-		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
-		return
-	}
-
 	following, err := app.database.Following(user.UserID)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
@@ -382,19 +376,17 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userDataWithPosts := struct {
-		CurrentUser      int               `json:"current_user"`
-		UserData         *models.UserData  `json:"user_data"`
-		Followers        []models.UserData `json:"followers"`
-		PendingFollowers []models.UserData `json:"pending_followers"`
-		Following        []models.UserData `json:"following"`
-		Posts            []models.Post     `json:"posts"`
+		CurrentUser int               `json:"current_user"`
+		UserData    *models.UserData  `json:"user_data"`
+		Followers   []models.UserData `json:"followers"`
+		Following   []models.UserData `json:"following"`
+		Posts       []models.Post     `json:"posts"`
 	}{
-		CurrentUser:      userID,
-		UserData:         user,
-		Followers:        followers,
-		PendingFollowers: pendingFollowers,
-		Following:        following,
-		Posts:            filteredPosts,
+		CurrentUser: userID,
+		UserData:    user,
+		Followers:   followers,
+		Following:   following,
+		Posts:       filteredPosts,
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, userDataWithPosts)
@@ -411,7 +403,7 @@ func (app *application) CreatePostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err := r.ParseMultipartForm(10) // 10 MB max file size
+	err := r.ParseMultipartForm(10)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error parsing form data"), http.StatusBadRequest)
 		return
@@ -488,7 +480,7 @@ func (app *application) CreatePostHandler(w http.ResponseWriter, r *http.Request
 		app.errorJSON(w, fmt.Errorf("Error adding data to the database"), http.StatusInternalServerError)
 		return
 	}
-	// Include an empty comments array for the newly created post.
+	//including an empty comments array for the newly created post.
 	post.Comments = make([]models.Comment, 0)
 
 	_ = app.writeJSON(w, http.StatusOK, post)
@@ -575,7 +567,7 @@ func (app *application) CommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(10) // 10 MB max file size
+	err := r.ParseMultipartForm(10)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Error parsing form data"), http.StatusBadRequest)
 		return
@@ -598,7 +590,6 @@ func (app *application) CommentHandler(w http.ResponseWriter, r *http.Request) {
 		defer imageFile.Close()
 
 		imageFolderPath := "database/images/"
-		//generating a random image name
 		randomBytes := make([]byte, 16)
 		_, err := rand.Read(randomBytes)
 		if err != nil {
@@ -606,7 +597,6 @@ func (app *application) CommentHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//converting random bytes to a hexadecimal string
 		imageName := hex.EncodeToString(randomBytes) + ".jpg"
 		imageFileName = imageName
 
@@ -710,7 +700,13 @@ func (app *application) FollowHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if isFollowing {
+	isPending, err := app.database.IsPending(userId, request.FollowingID)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+
+	if isFollowing || isPending {
 		err = app.database.UnfollowUser(userId, request.FollowingID)
 		if err != nil {
 			app.errorJSON(w, fmt.Errorf("Failed to unfollow user: %w", err), http.StatusInternalServerError)
@@ -729,7 +725,55 @@ func (app *application) FollowHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
 	_ = app.writeJSON(w, http.StatusOK, request)
+}
+
+func (app *application) FollowerHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		app.errorJSON(w, fmt.Errorf("Invalid request method"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	if r.URL.Path != "/follower-check" {
+		app.errorJSON(w, fmt.Errorf("Error 404, page not found"), http.StatusNotFound)
+		return
+	}
+
+	followingId := r.URL.Query().Get("userId")
+	followingIdInt, err := strconv.Atoi(followingId)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Invalid groupId parameter"), http.StatusBadRequest)
+		return
+	}
+
+	userId, _, _, _, err := app.database.DataFromSession(r)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
+		return
+	}
+
+	isFollowing, err := app.database.IsFollowing(userId, followingIdInt)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Failed to check if user is following"), http.StatusInternalServerError)
+		return
+	}
+
+	isPending, err := app.database.IsPending(userId, followingIdInt)
+	if err != nil {
+		app.errorJSON(w, fmt.Errorf("Error getting data from the database"), http.StatusInternalServerError)
+		return
+	}
+
+	followData := struct {
+		IsFollowing bool `json:"is_following"`
+		IsPending   bool `json:"is_pending"`
+	}{
+		IsFollowing: isFollowing,
+		IsPending:   isPending,
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, followData)
 }
 
 func (app *application) FollowingHandler(w http.ResponseWriter, r *http.Request) {
@@ -931,7 +975,7 @@ func (app *application) CreateGroupHandler(w http.ResponseWriter, r *http.Reques
 		selectedUserIDs = strings.Split(group.SelectedUserID, ",")
 	}
 
-	// Add selected users to the groupmembers table
+	//adding selected users to the groupmembers table
 	for _, userIDStr := range selectedUserIDs {
 		userID, err := strconv.Atoi(userIDStr)
 		if err != nil {
@@ -1074,7 +1118,6 @@ func (app *application) GroupPostsHandler(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	//comments for each post and add them to the filtered posts
 	for i := range filteredPosts {
 		postID := filteredPosts[i].PostID
 		comments, err := app.database.GetCommentsByPostID(postID)
@@ -1849,8 +1892,7 @@ var (
 )
 
 func (app *application) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
-	// Upgrade the HTTP connection to a WebSocket connection
-	// in order to enable full-duplex communication and support WebSocket-specific features, the HTTP connection needs to be upgraded to a WebSocket connection.
+	// Upgrade the HTTP connection to a WebSocket connection in order to enable full-duplex communication and support WebSocket-specific features
 	conn, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
@@ -1864,14 +1906,12 @@ func (app *application) WebsocketHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Add the WebSocket connection to the connections map
-	// map is used to maintain active WebSocket connections.
+	// Add the WebSocket connection to the connections map to maintain active WebSocket connections.
 	mutex.Lock()
 	connections[firstName] = conn
 	mutex.Unlock()
 	// The function enters a loop to continuously read messages from the client.
 	for {
-		// Read message from the client
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
@@ -1889,12 +1929,11 @@ func (app *application) WebsocketHandler(w http.ResponseWriter, r *http.Request)
 			break
 		}
 
-		// Finally, it calls the handleMessage function, passing the recipient user's nickname, writer user's nickname, and the message as parameters to handle the received message.
+		// Calling the handleMessage function, passing the recipient user's name, writer user's name, and the message as parameters to handle the received message.
 		app.handleMessage(r, w, msg.FirstNameFrom, msg.FirstNameTo, msg)
 	}
 
 	// Remove the WebSocket connection from the connections map when the connection is closed
-	// The function uses a mutex to protect concurrent access to the connections map to ensure thread safety.
 	mutex.Lock()
 	delete(connections, firstName)
 	mutex.Unlock()
@@ -2008,7 +2047,6 @@ func (app *application) GroupWebsocketHandler(w http.ResponseWriter, r *http.Req
 }
 
 func broadcastGroupMessage(groupName string, message models.Message) {
-	// Lock the group's connection map to ensure thread safety
 	groupMutex.Lock()
 	defer groupMutex.Unlock()
 

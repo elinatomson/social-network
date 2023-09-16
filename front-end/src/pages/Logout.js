@@ -11,7 +11,7 @@ function Logout() {
         displayErrorMessage(`${error.message}`);
       })
       .finally(() => {
-        // Remove the "session" cookie by setting its expiration to the past
+        //removing the "session" cookie by setting its expiration to the past
         document.cookie = "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         navigate("/");
       });

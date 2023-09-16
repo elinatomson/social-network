@@ -63,7 +63,6 @@ function CreatePost({ groupId }) {
       return;
     }
 
-    // Convert the selectedUsers array to a comma-separated string
     const selectedUserIdString = selectedUsers.join(",");
     
     const postData = new FormData();
@@ -90,7 +89,7 @@ function CreatePost({ groupId }) {
           setSearchResults(null);
           setSelectedUsers([]);
           setShowFields(false);
-          // Use the navigate function to redirect to the /main page and pass the post data in the state object
+          //using the navigate function to redirect to the /main page and pass the post data in the state object
           if (groupId == null) {
             navigate(`/main`, { state: { postContent } });
           } else {

@@ -26,19 +26,17 @@ function AllPosts() {
   : [];
 
   const addNewComment = (postID, newComment) => {
-    // Find the post by postID and update its comments array
+    //finding the post by postID and update its comments array
     setAllPosts((prevAllPosts) =>
       prevAllPosts.map((post) =>
-      //"post.post_id === postID ? ... : post" checks if the post_id of the current post matches the postID provided as an argument to the addNewComment function. 
-      //If they match, it means we have found the post to which the new comment needs to be added, and we should modify this post.
         post.post_id === postID
           ? {
               ...post,
-              //If post.comments is null, it means there are no existing comments on this post. So, we initialize the comments property as a new array containing only the newComment.
-              //If post.comments is not null, it means there are already some comments on this post. In this case, we use the spread operator (...) again to create a new array. We copy all the existing comments from post.comments and add the newComment to the end of the array.
+              //If post.comments is null, it means there are no existing comments on this post. So initializing the comments property as a new array containing only the newComment.
+              //If post.comments is not null, it means there are already some comments on this post. In this case, using the spread operator (...) again to create a new array. Coping all the existing comments from post.comments and adding the newComment to the end of the array.
               comments: post.comments === null ? [newComment] : [...post.comments, newComment],
             }
-          //If the post_id doesn't match (i.e., we are not updating this specific post), we simply return the original post object without any changes.
+          //If the post_id doesn't match, simply returning the original post object without any changes.
           : post
       )
     );

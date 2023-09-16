@@ -27,6 +27,15 @@ function Header() {
       });
   }, []);
 
+    const isOnMainPage = window.location.pathname === '/main';
+  
+    const handleClick = () => {
+      if (isOnMainPage) {
+        window.location.reload();
+      }
+    }
+
+
   return (
     <header>
         {userData ? (
@@ -53,7 +62,7 @@ function Header() {
               <span className="heading2">Social Network page</span>
             </div>
             <div className="right-container">
-              <Link className="log-out-button" to="/main">Main Page</Link>
+              <Link className="log-out-button" to="/main" onClick={handleClick}>Main Page</Link>
               <Link className="log-out-button" to="/logout">Log Out</Link>
             </div>
           </div>

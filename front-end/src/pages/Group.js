@@ -39,7 +39,7 @@ function Group() {
             throw new Error(data.message);
           })
         } else {
-          document.cookie = "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/group/;";
+          document.cookie = "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/group;";
           return response.json();
         }
       })

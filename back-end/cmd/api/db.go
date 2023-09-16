@@ -36,7 +36,6 @@ func openDB() (*sql.DB, error) {
 			return nil, err
 		}
 
-		// Sort the migration files based on their names or version numbers.
 		sort.SliceStable(fileNames, func(i, j int) bool {
 			return fileNames[i].Name() < fileNames[j].Name()
 		})
