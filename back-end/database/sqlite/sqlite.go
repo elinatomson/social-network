@@ -1,11 +1,11 @@
 package sqlite
 
 import (
-	"back-end/models"
 	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
+	"social-network/back-end/models"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -924,7 +924,7 @@ func (m *SqliteDB) CreateEvent(event *models.Event) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	
+
 	return int(eventID), nil
 }
 

@@ -11,8 +11,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+var dbPath = "./back-end/database/database.db"
+
 func openDB() (*sql.DB, error) {
-	dbPath := "./database/database.db"
 	exists := true
 
 	if _, err := os.Stat(dbPath); os.IsNotExist(err) {

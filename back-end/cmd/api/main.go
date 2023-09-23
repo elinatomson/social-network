@@ -1,10 +1,11 @@
 package main
 
 import (
-	"back-end/database/sqlite"
 	"fmt"
 	"log"
 	"net/http"
+
+	"social-network/back-end/database/sqlite"
 
 	_ "github.com/mattn/go-sqlite3"
 )

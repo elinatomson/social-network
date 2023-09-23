@@ -1,10 +1,11 @@
 package main
 
 import (
-	"back-end/models"
 	"errors"
 	"net/http"
 	"time"
+
+	"social-network/back-end/models"
 
 	"github.com/gofrs/uuid"
 )
