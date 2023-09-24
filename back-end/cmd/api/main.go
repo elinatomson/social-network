@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"social-network/back-end/database/sqlite"
+	"social-network/database/sqlite"
 
 	_ "github.com/mattn/go-sqlite3"
 )

@@ -1,24 +1,19 @@
-version: '1'
+version: '3'
 services:
-  frontend:
-    build:
-      context: ./front-end 
+  back-end:
+    build: ./back-end
     ports:
-      - "3000:3000"
+      - '8080:8080'
     networks:
-      - your-network
-    depends_on:
-      - backend
-  backend:
-    build:
-      context: .  
-      dockerfile: Dockerfile 
+      - app_network
+    restart: on-failure
+  front-end:
+    build: ./front-end
     ports:
-      - "8080:8080"  
+      - '3000:3000'
     networks:
-      - your-network
+      - app_network
+    restart: on-failure
 networks:
-  your-network:
-
-    
-
+  app_network:
+    driver: bridge

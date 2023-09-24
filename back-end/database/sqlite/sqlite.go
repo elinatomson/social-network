@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"social-network/back-end/models"
+	"social-network/models"
 	"time"
 
 	"github.com/gofrs/uuid"

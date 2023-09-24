@@ -110,12 +110,12 @@ function Register () {
                         <p className="alert">Please fill in the password (at least 5 letters).</p>
                       )}
                     <label htmlFor="firstName">First Name*</label>
-                    <input value={firstName} onChange={(e) => setFirstName(e.target.value)} type="text" placeholder="John" id="firstName" name="first_name" />
+                    <input value={firstName} onChange={(e) => setFirstName(e.target.value)} type="text" placeholder="First name" id="firstName" name="first_name" />
                       {errors.includes("first_name") && (
                         <p className="alert">Please fill in the first name.</p>
                       )}
                     <label htmlFor="lastName">Last Name*</label>
-                    <input value={lastName} onChange={(e) => setLastName(e.target.value)} type="text" placeholder="Doe" id="lastName" name="last_name" />
+                    <input value={lastName} onChange={(e) => setLastName(e.target.value)} type="text" placeholder="Last name" id="lastName" name="last_name" />
                       {errors.includes("last_name") && (
                         <p className="alert">Please fill in the last name.</p>
                       )}

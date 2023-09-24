@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"social-network/back-end/models"
+	"social-network/models"
 
 	"github.com/gorilla/websocket"
 )

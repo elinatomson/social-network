@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"social-network/back-end/models"
+	"social-network/models"
 
 	"github.com/gofrs/uuid"
 )
