@@ -7,13 +7,13 @@ RUN apk update && apk add --no-cache git gcc g++ sqlite-dev
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy your Go application source code into the container
+# Copy Go application source code into the container
 COPY . .
 
-# Build your Go application with CGO enabled
+# Build Go application with CGO enabled
 RUN CGO_ENABLED=1 go build -o main ./cmd/api
 
-# Expose the port your application runs on
+# Expose the port application runs on
 EXPOSE 8080
 
 # Run the Go application

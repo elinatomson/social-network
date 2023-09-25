@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
 	"social-network/database/sqlite"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -18,6 +17,10 @@ type application struct {
 
 func main() {
 	var app application
+	err := app.applyMigrations()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	conn, err := app.connectToDB()
 	if err != nil {
@@ -27,7 +30,6 @@ func main() {
 	defer app.database.Connection().Close()
 
 	log.Println("Starting application on port", port)
-
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), app.routes())
 	if err != nil {
 		log.Fatal(err)
