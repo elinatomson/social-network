@@ -141,7 +141,10 @@ func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		cookieValue := app.addCookie(w, userId, email, firstName, lastName)
 
-		app.writeJSON(w, http.StatusOK, map[string]string{"session": cookieValue})
+		err = app.writeJSON(w, http.StatusOK, map[string]string{"session": cookieValue})
+		if err != nil {
+			return
+		}
 	}
 }
 
@@ -151,7 +154,10 @@ func (app *application) LogOutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.deleteCookie(r)
+	err := app.deleteCookie(r)
+	if err != nil {
+		return 
+	}
 	w.WriteHeader(http.StatusAccepted)
 }
 
@@ -299,6 +305,9 @@ func (app *application) UserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	id := strings.TrimPrefix(r.URL.Path, "/user/")
 	id1, err := strconv.Atoi(id)
+	if err != nil {
+		return 
+	}
 
 	user, err := app.database.GetUser(id1)
 	if err != nil {
@@ -846,7 +855,6 @@ func (app *application) FollowRequestsHandler(w http.ResponseWriter, r *http.Req
 	userID, _, _, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
-		userID = 0
 		return
 	}
 
@@ -1028,6 +1036,9 @@ func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	id := strings.TrimPrefix(r.URL.Path, "/group/")
 	id1, err := strconv.Atoi(id)
+	if err != nil {
+		return
+	}
 
 	userID, _, firstName, _, err := app.database.DataFromSession(r)
 	if err != nil {
@@ -1081,7 +1092,7 @@ func (app *application) GroupHandler(w http.ResponseWriter, r *http.Request) {
 		RequestPending: requestPending,
 	}
 
-	app.writeJSON(w, http.StatusOK, groupResponse)
+	_ = app.writeJSON(w, http.StatusOK, groupResponse)
 }
 
 func (app *application) GroupPostsHandler(w http.ResponseWriter, r *http.Request) {
@@ -1182,7 +1193,6 @@ func (app *application) GroupInvitationHandler(w http.ResponseWriter, r *http.Re
 	userID, _, _, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
-		userID = 0
 		return
 	}
 
@@ -1344,7 +1354,6 @@ func (app *application) GroupRequestsHandler(w http.ResponseWriter, r *http.Requ
 	userID, _, _, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
-		userID = 0
 		return
 	}
 
@@ -1514,7 +1523,6 @@ func (app *application) GroupEventNotificationsHandler(w http.ResponseWriter, r 
 	userID, _, _, _, err := app.database.DataFromSession(r)
 	if err != nil {
 		app.errorJSON(w, fmt.Errorf("Failed to get the user ID from the session"), http.StatusInternalServerError)
-		userID = 0
 		return
 	}
 
@@ -1636,6 +1644,9 @@ func (app *application) GroupEventHandler(w http.ResponseWriter, r *http.Request
 	}
 	id := strings.TrimPrefix(r.URL.Path, "/group-event/")
 	id1, err := strconv.Atoi(id)
+	if err != nil {
+		return
+	}
 
 	userID, _, _, _, err := app.database.DataFromSession(r)
 	if err != nil {

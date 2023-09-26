@@ -42,6 +42,9 @@ func (app *application) applyMigrations() error {
 	}
 
 	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
+	if err != nil {
+		return err
+	}
 
 	// Create a new migration instance
 	m, err := migrate.NewWithDatabaseInstance("file://./database/migrations", "sqlite3", driver)

@@ -20,7 +20,7 @@ type UserData struct {
 type FollowRequest struct {
 	FollowingID    int   `json:"following_id"`
 	FollowerID     int   `json:"follower_id"`
-	RequestPending *bool `json:"request_pending,omitempty"`
+	RequestPending bool `json:"request_pending,omitempty"`
 }
 
 type Post struct {
@@ -80,8 +80,8 @@ type GroupMembers struct {
 	GroupTitle        string `json:"group_title"`
 	GroupCreatorID    int    `json:"group_creator_id"`
 	MemberID          int    `json:"member_id"`
-	RequestPending    *bool  `json:"request_pending,omitempty"`
-	InvitationPending *bool  `json:"invitation_pending,omitempty"`
+	RequestPending    bool  `json:"request_pending,omitempty"`
+	InvitationPending bool  `json:"invitation_pending,omitempty"`
 }
 
 type Event struct {
@@ -100,7 +100,7 @@ type EventParticipants struct {
 	ParticipantID int    `json:"participant_id"`
 	FirstName     string `json:"first_name"`
 	LastName      string `json:"last_name"`
-	Going         *bool  `json:"going,omitempty"`
+	Going         bool  `json:"going,omitempty"`
 }
 
 type EventNotifications struct {
