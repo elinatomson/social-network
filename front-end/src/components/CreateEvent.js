@@ -31,24 +31,31 @@ function CreateEvent({ groupId }) {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-    let errors = []
-    let required = [
-        { field: title, name: "title"},
-        { field: description, name: "description"},
-        { field: time, name: "time"},
-    ]
+        setErrors([]);
 
-    required.forEach(function (obj) {
-      if (obj.field === "") {
-        errors.push(obj.name);
-      }
-    })
+        const newErrors = [];
+    
+        if (title.trim() === "") {
+          newErrors.push("title");
+        } else if (title.length > 10) {
+          newErrors.push("title_length");
+        }
 
-    setErrors(errors)
+        if (description.trim() === "") {
+          newErrors.push("description");
+        } else if (description.length > 100) {
+          newErrors.push("description_length");
+        }
 
-    if (errors.length > 0) {
-      return;
-    }
+        if (time.trim() === "") {
+          newErrors.push("time");
+        }
+    
+        setErrors(newErrors)
+    
+        if (newErrors.length > 0) {
+          return;
+        }
     
     const eventData = {
     title: title,
@@ -98,9 +105,15 @@ function CreateEvent({ groupId }) {
                 {errors.includes("title") && (
                     <p className="alert">Please fill in the title.</p>
                 )}
+                {errors.includes("title_length") && (
+                  <p className="alert">Title is too long (max 10 characters).</p>
+                )}
                 <input value={description} onChange={handleDescriptionChange} placeholder="Description" name="description"/>
                 {errors.includes("description") && (
                     <p className="alert">Please fill in the description.</p>
+                )}
+                {errors.includes("description_length") && (
+                  <p className="alert">Description is too long (max 100 characters).</p>
                 )}
                 <input value={time} onChange={handleTimeChange} placeholder="Time" name="time" type="date" min={new Date().toISOString().split('T')[0]}/>
                 {errors.includes("time") && (

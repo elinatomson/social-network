@@ -45,21 +45,20 @@ function CreatePost({ groupId }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    setErrors([]);
 
-    let errors = []
-      let required = [
-        { field: postContent, name: "content"},
-    ]
+    const newErrors = [];
 
-    required.forEach(function (obj) {
-      if (obj.field === "") {
-        errors.push(obj.name);
-      }
-    })
+    if (postContent.trim() === "") {
+      newErrors.push("content");
+    } else if (postContent.length > 100) {
+      newErrors.push("content_length");
+    }
 
-    setErrors(errors)
+    setErrors(newErrors)
 
-    if (errors.length > 0) {
+    if (newErrors.length > 0) {
       return;
     }
 
@@ -116,7 +115,10 @@ function CreatePost({ groupId }) {
         <form className="login-form" onSubmit={handleSubmit}>
           <input placeholder="Post something..." value={postContent} onChange={handleContentChange} name="content"></input>
           {errors.includes("content") && (
-            <p className="alert">Please fill in the input field.</p>
+            <p className="alert">Please fill in the post field.</p>
+          )}
+          {errors.includes("content_length") && (
+            <p className="alert">Post is too long (max 100 characters).</p>
           )}
           <div className="container">
           {groupId ? null : (

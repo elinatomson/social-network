@@ -555,6 +555,7 @@
 
   .nothing{
     text-align: center;
+    word-break: break-all;
   }
   
   .comment {

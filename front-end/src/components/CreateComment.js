@@ -5,6 +5,7 @@ function CreateComment({ postID, addNewComment }) {
   const [commentContent, setCommentContent] = useState("");
   const [imageOrGif, setImageOrGif] = useState(null);
   const [isCommentFocused, setIsCommentFocused] = useState(false);
+  const [errors, setErrors] =useState([]);
 
 
   const handleContentChange = (e) => {
@@ -18,6 +19,21 @@ function CreateComment({ postID, addNewComment }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setErrors([]);
+
+    const newErrors = [];
+
+    if (commentContent.trim() === "") {
+      newErrors.push("comment");
+    } else if (commentContent.length > 100) {
+      newErrors.push("comment_length");
+    }
+
+    setErrors(newErrors)
+
+    if (newErrors.length > 0) {
+      return;
+    }
     
     const commentData = new FormData();
     commentData.append("post_id", postID);
@@ -66,7 +82,13 @@ function CreateComment({ postID, addNewComment }) {
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        <input className="content" placeholder="Comment..." value={commentContent} onChange={handleContentChange} onFocus={() => setIsCommentFocused(true)} required/>
+        <input className="content" placeholder="Comment..." value={commentContent} onChange={handleContentChange} onFocus={() => setIsCommentFocused(true)}/>
+        {errors.includes("comment") && (
+            <p className="alert">Please fill in the comment field.</p>
+          )}
+          {errors.includes("comment_length") && (
+            <p className="alert">Comment is too long (max 100 characters).</p>
+          )}
             {isCommentFocused && (
                 <>
                   <label htmlFor="image"></label>

@@ -18,36 +18,49 @@ function Register () {
     const handleSubmit = (e) => {
       e.preventDefault();
 
-      let errors = []
-      let required = [
-        { field: email, name: "email"},
-        { field: password, name: "password"},
-        { field: firstName, name: "first_name"},
-        { field: lastName, name: "last_name"},
-        { field: dateOfBirth, name: "date_of_birth"},
-      ]
+      setErrors([]);
 
-      required.forEach(function (obj) {
-        if (obj.field === "" ) {
-          errors.push(obj.name);
-        }
-      })
-
+      const newErrors = [];
+  
+      if (email.trim() === "") {
+        newErrors.push("email");
+      } else if (email.length > 30) {
+        newErrors.push("email_length");
+      }
+  
       if (password.length < 5) {
-        errors.push("password");
+        newErrors.push("password");
+      } else if (password.length > 20) {
+        newErrors.push("password_length");
       }
-
+  
+      if (firstName.trim() === "") {
+        newErrors.push("first_name");
+      } else if (firstName.length > 20) {
+        newErrors.push("first_name_length");
+      }
+  
+      if (lastName.trim() === "") {
+        newErrors.push("last_name");
+      } else if (lastName.length > 20) {
+        newErrors.push("last_name_length");
+      }
+  
+      if (dateOfBirth.trim() === "") {
+        newErrors.push("date_of_birth");
+      }
+  
       if (aboutMe.length > 100) {
-        errors.push("about_me");
+        newErrors.push("about_me");
       }
-
+  
       if (nickname.length > 10) {
-        errors.push("nickname");
+        newErrors.push("nickname");
       }
-
-      setErrors(errors)
-
-      if (errors.length > 0) {
+  
+      setErrors(newErrors);
+  
+      if (newErrors.length > 0) {
         return;
       }
 
@@ -104,20 +117,32 @@ function Register () {
                       {errors.includes("email") && (
                         <p className="alert">Please fill in the email.</p>
                       )}
+                      {errors.includes("email_length") && (
+                        <p className="alert">Email is too long (max 30 characters).</p>
+                      )}
                     <label htmlFor="password">Password*</label>
                     <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="********" id="password" name="password" />
                       {errors.includes("password") && (
                         <p className="alert">Please fill in the password (at least 5 letters).</p>
+                      )}
+                      {errors.includes("password_length") && (
+                        <p className="alert">Password is too long (max 20 characters).</p>
                       )}
                     <label htmlFor="firstName">First Name*</label>
                     <input value={firstName} onChange={(e) => setFirstName(e.target.value)} type="text" placeholder="First name" id="firstName" name="first_name" />
                       {errors.includes("first_name") && (
                         <p className="alert">Please fill in the first name.</p>
                       )}
+                      {errors.includes("first_name_length") && (
+                        <p className="alert">First name is too long (max 20 characters).</p>
+                      )}
                     <label htmlFor="lastName">Last Name*</label>
                     <input value={lastName} onChange={(e) => setLastName(e.target.value)} type="text" placeholder="Last name" id="lastName" name="last_name" />
                       {errors.includes("last_name") && (
                         <p className="alert">Please fill in the last name.</p>
+                      )}
+                      {errors.includes("last_name_length") && (
+                        <p className="alert">Last name is too long (max 20 characters).</p>
                       )}
                     <label htmlFor="dateOfBirth">Date of Birth*</label>
                     <input value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} type="date" id="dateOfBirth" name="date_of_birth" max={new Date().toISOString().split('T')[0]}/>
@@ -129,12 +154,12 @@ function Register () {
                     <label htmlFor="nickname">Nickname (Optional)</label>
                     <input value={nickname} onChange={(e) => setNickname(e.target.value)} type="text" placeholder="Nickname" id="nickname" name="nickname"/>
                     {errors.includes("nickname") && (
-                        <p className="alert">Too long Nickname (make it less than 10 letters).</p>
+                        <p className="alert">Nickname is too long (max 10 characters).</p>
                       )}
                     <label htmlFor="aboutMe">About Me (Optional)</label>
                     <input value={aboutMe} onChange={(e) => setAboutMe(e.target.value)} placeholder="Something about yourself..." id="about_me" name="aboutMe"/>
                     {errors.includes("about_me") && (
-                        <p className="alert">Too long About Me (make it less than 100 letters).</p>
+                        <p className="alert">About Me too long (max 100 characters).</p>
                       )}
                     <div id="error" className="alert"></div>
                     <button className="button" type="submit">Register</button>

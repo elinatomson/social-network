@@ -1,5 +1,5 @@
 # Use the official golang:alpine image as the base image
-FROM golang:alpine
+FROM golang:alpine 
 
 # Install necessary build tools and dependencies
 RUN apk update && apk add --no-cache git gcc g++ sqlite-dev

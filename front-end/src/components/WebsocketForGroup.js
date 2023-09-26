@@ -8,6 +8,7 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom }) {
   const [messageInput, setMessageInput] = useState('');
   const [ws, setWs] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [errors, setErrors] =useState([])
 
   useEffect(() => {
     const websocket = new WebSocket(`ws://localhost:8080/chatroom/?group=${groupName}`);
@@ -83,6 +84,19 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom }) {
   }
 
   const sendMessage = () => {
+    setErrors([]);
+
+    const newErrors = [];
+
+    if (messageInput.length > 50) {
+      newErrors.push("message_length");
+    }
+
+    setErrors(newErrors)
+
+    if (newErrors.length > 0) {
+      return;
+    }
     if (messageInput.trim() !== '') {
     const data = {
       message: messageInput,
@@ -142,6 +156,9 @@ function WebSocketComponentForGroup({ groupName, firstNameFrom }) {
             😃
           </button>
         </div>
+        {errors.includes("message_length") && (
+            <p className="alert">Message is too long (max 100 characters).</p>
+        )}
         <div className="right-container1">
           <button className="chat-send-button" id="send-button" onClick={sendMessage}>
             Send
