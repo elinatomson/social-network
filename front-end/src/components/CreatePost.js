@@ -139,11 +139,12 @@ function CreatePost({ groupId }) {
                         <div key={result.user_id} className="search-result-item">
                             <label htmlFor="selected_user_id"></label>
                             <input
-                            type="checkbox"
-                            name="selected_user_id"
-                            value={result.user_id}
-                            onChange={() => handleUserSelection(result.user_id)}
-                            checked={selectedUsers.includes(result.user_id)}
+                              class="checkbox"
+                              type="checkbox"
+                              name="selected_user_id"
+                              value={result.user_id}
+                              onChange={() => handleUserSelection(result.user_id)}
+                              checked={selectedUsers.includes(result.user_id)}
                             />
                           {result.first_name} {result.last_name}
                         </div>

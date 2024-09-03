@@ -45,7 +45,7 @@ function InviteNewMember({ groupId }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="following">
+      <div className="group-data">
         Invite new member:
       </div>
       <Search setSearchResults={setSearchResults} />
@@ -70,7 +70,7 @@ function InviteNewMember({ groupId }) {
           )}
       </div>
     <div id="error" className="alert"></div>
-    <button className="log-out-button" type="submit">Invite</button>
+    <button className="invite" type="submit">Invite</button>
     <div id="message"></div>
   </form>
   );

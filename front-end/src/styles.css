@@ -29,17 +29,16 @@
   
   .heading1 {
     font-family: 'Orbitron', sans-serif;
-    font-size: 50px;
-    margin-left: 0%;
+    font-size: clamp(30px, 5vw, 50px);
     color: white;
-    margin-left: 15%;
   }
   
   .heading2 {
     font-family: 'Vina Sans', cursive;
-    font-size: 70px;
-    margin-left: 30%;
-    color:#66FCF1
+    font-size: clamp(40px, 5vw, 70px);
+    color:#66FCF1;
+    text-align: right;
+    display: block;
   }
   
   .App {
@@ -53,20 +52,12 @@
   .auth-form-container, .login-form, .register-form {
     display: flex;
     text-align: center;
-    width: 60%;
-    margin-left: 20%;
+    align-items: center;
+    width: 100%;
     margin-top: 2%;
     margin-bottom: 2%;
     flex-direction: column;
     font-family: 'Orbitron', sans-serif;
-  }
-  
-  @media screen and (min-width: 600px) {
-    .auth-form-container {
-      border: 1px solid white;
-      border-radius: 10px;
-      margin-left: 20%;
-    }
   }
   
   label {
@@ -81,6 +72,12 @@
     border-radius: 10px;
     font-family: 'Orbitron', sans-serif;
     outline: none;
+    box-sizing: border-box;
+    width: 70%;
+  }
+
+  input.checkbox {
+    width: 15%;
   }
 
   .custom-file-input {
@@ -104,6 +101,11 @@
     height: 100%;
     cursor: pointer;
   }
+
+  .button-container {
+    display: flex;
+    gap: 10px; 
+  }
   
   .button {
     display: block;
@@ -115,8 +117,6 @@
     cursor: pointer;
     font-family: 'Vina Sans', cursive;
     margin-top: 1%;
-    margin-left: 20%;
-    margin-right: 20%;
     padding-bottom: 2px;
     text-align: center;
     text-decoration: none;
@@ -144,12 +144,12 @@
     padding-bottom: 2px;
     text-align: center;
     text-decoration: none;
-    max-width: 80%;
+    max-width: 100%;
   }
 
   .log-out-button {
     display: block;
-    font-size: 25px;
+    font-size: clamp(15px, 5vw, 25px);
     color: #fff;
     background-color: #1F2833;
     border: 1px solid #66FCF1;
@@ -160,7 +160,30 @@
     padding-bottom: 2px;
     text-align: center;
     text-decoration: none;
-    max-width: 40%;
+    max-width: 60%;
+  }
+
+  .invite {
+    display: block;
+    font-size: clamp(15px, 5vw, 25px);
+    color: #fff;
+    background-color: #1F2833;
+    border: 1px solid #66FCF1;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Vina Sans', cursive;
+    margin-top: 1px;
+    padding-bottom: 2px;
+    text-align: center;
+    text-decoration: none;
+    max-width: 60%;
+    margin-left: 10%;
+  }
+
+  @media (max-width: 768px) {
+    .log-out-button, .invite {
+      max-width: 100%;
+    }
   }
 
   .comment-button {
@@ -172,12 +195,12 @@
     border-radius: 10px;
     cursor: pointer;
     font-family: 'Vina Sans', cursive;
-    margin-left: 43%;
+    margin-left: 5%;
     margin-top: 0%;
     padding-bottom: 2px;
     text-align: center;
     text-decoration: none;
-    max-width: 30%;
+    max-width: 50%;
   }
 
   .send-button {
@@ -251,7 +274,7 @@
 
   .follow-button {
     display: block;
-    font-size: 25px;
+    font-size: clamp(15px, 2vw, 25px);
     color: #fff;
     background-color: #1F2833;
     border: 1px solid #66FCF1;
@@ -299,7 +322,7 @@
     font-size: 15px;
     cursor: pointer;
     margin-bottom: 1%;
-    margin-left: 30%;
+    margin-left: 10%;
   }
   
   .link-btn:hover, .profile-btn:hover {
@@ -324,7 +347,7 @@
 
   .message {
     font-family: 'Orbitron', sans-serif;
-    font-size: 20px;
+    font-size: clamp(12px, 3vw, 20px);
   }
 
   .input-box {
@@ -337,24 +360,31 @@
 
   .user1 {
     font-family: 'Vina Sans', cursive;
-    font-size: 40px;
+    font-size: clamp(20px, 5vw, 40px);
     color: #66FCF1;
-    margin-left: 30%;
+    margin-left: 10%;
   }
 
   .user2 {
     font-family: 'Orbitron', sans-serif;
-    margin-left: 30%;
-    word-break: break-all;
+    margin-left: 10%;
+    word-break: break-word;
+    font-size: clamp(12px, 2vw, 16px);
   }
 
   .avatar{
-    margin-left: 30%;
+    margin-left: 10%;
   }
 
   .email, .dob {
     width: 10%;
     border-radius: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .email, .dob {
+      max-width: 20%;
+    }
   }
 
   .envelope {
@@ -365,18 +395,20 @@
 
   .user-user1 {
     font-family: 'Vina Sans', cursive;
-    font-size: 40px;
+    font-size: clamp(30px, 5vw, 40px);
     color: #66FCF1;
-    margin-left: 40%;
+    text-align: center;
   }
 
   .user-user2 {
     font-family: 'Orbitron', sans-serif;
-    margin-left: 30%;
+    text-align: center;
+    word-break: break-word;
+    font-size: clamp(12px, 3vw, 16px);
   }
 
   .user-avatar{
-    margin-left: 42%;
+    text-align: center;
   }
 
   .user-email, .user-dob {
@@ -384,12 +416,30 @@
     border-radius: 20px;
   }
 
+  @media (max-width: 768px) {
+    .user-email, .user-dob {
+      width: 10%;
+    }
+  }
+
   .about {
     width: 10%;
+  }
+
+  @media (max-width: 768px) {
+    .about {
+      max-width: 20%;
+    }
   }
   
   .user-about {
     width: 5%;
+  }
+
+  @media (max-width: 768px) {
+    .user-about {
+      width: 10%;
+    }
   }
 
   .avatar-img {
@@ -397,13 +447,31 @@
     border-radius: 90px;
   }
 
+  @media (max-width: 768px) {
+    .avatar-img  {
+      width: 50%;
+    }
+  }
+
   .user-avatar-img {
     width: 25%;
     border-radius: 90px;
   }
+  
+  @media (max-width: 768px) {
+    .user-avatar-img {
+      width: 70%;
+    }
+  }
 
   .search{
-    width: 33%;
+    width: 60%;
+  }
+
+  @media (max-width: 768px) {
+    .search {
+      width: 85%;
+    }
   }
 
   .post-search{
@@ -415,6 +483,17 @@
   }
   
   .container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .request-container {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+  }
+
+  .accept-container {
     display: flex;
     justify-content: space-between;
   }
@@ -449,11 +528,13 @@
 
   .left-container1 {
     flex: 1;
-    margin-left: 30%;
+    margin-left: 10%;
   }
 
   .left-container2 {
     flex: 1;
+    margin-left: 5%;
+    text-align: start;
   }
 
   .left-container3 {
@@ -471,26 +552,26 @@
   }
 
   .activity {
-    font-size: 35px;
+    font-size: clamp(25px, 5vw, 35px);
     text-align: center;
     margin-bottom: 2%;
   }
 
   .content {
-    width: 90%;
-    outline:none;
-    margin-left: 2%;
-    overflow: auto;
+    width: 88%;
+    outline: none;
+    margin-left: 5%;
+    padding: 1%;
   }
 
   .posting{
     border: 1px solid white;
     padding-right: 2%;
     border-radius: 20px;
-    width: 99%;
     padding-bottom: 1%;
     margin-bottom: 2%;
     overflow: auto;
+    font-size: clamp(10px, 2vw, 16px);
   }
 
   .names{
@@ -501,10 +582,8 @@
   .posts{
     border: 1px solid white;
     border-radius: 20px;
-    width: 80%;
     padding-bottom: 1%;
     margin-bottom: 2%;
-    margin-left: 10%;
     background-color: rgb(206, 205, 205);
     color: #1F2833;
     text-align: left;
@@ -514,7 +593,7 @@
   .post{
     margin-left: 2%;
     width: 100%;
-    word-break: break-all;
+    word-break: normal;
   }
 
   .post-image{
@@ -544,18 +623,20 @@
     outline:none;
     border: none;
     color: #737474;
-    margin-left: 4%;
+    width: 70%;
   }
 
   .insert{
     margin-top: 0%;
     padding-top: 0%;
     margin-bottom: 0%;
+    margin-left: 3%;
+    width: 100%;
   }
 
   .nothing{
     text-align: center;
-    word-break: break-all;
+    word-break: normal;
   }
   
   .comment {
@@ -571,7 +652,7 @@
   .comment-text{
     margin-left: 2%;
     width: 100%;
-    word-break: break-all;
+    word-break: normal;
   }
 
   .app-container {
@@ -580,7 +661,7 @@
     min-height: 100vh;
   }
 
-  .footer {
+  footer {
     font-family: 'Orbitron', sans-serif;
     font-size: 10px;
     color: white;
@@ -591,31 +672,34 @@
   .following{
     font-family: 'Vina Sans', cursive;
     margin-top: 5%;
-    font-size: 25px;
-    color:#66FCF1
+    font-size: clamp(15px, 3vw, 25px);
+    color:#66FCF1;
+    text-align: center;
   }
 
   .group-list{
     font-family: 'Vina Sans', cursive;
-    font-size: 25px;
+    font-size: clamp(15px, 5vw, 25px);
     color:#66FCF1
   }
 
   .chat_users{
     font-family: 'Vina Sans', cursive;
-    font-size: 25px;
+    font-size: clamp(15px, 5vw, 25px);
     color:#66FCF1;
     text-decoration: underline;
     cursor: pointer;
+    margin-left: 10%;
   }
 
   .group-chat{
     font-family: 'Vina Sans', cursive;
-    font-size: 25px;
+    font-size: clamp(12px, 5vw, 25px);
     color:#66FCF1;
     text-decoration: underline;
     cursor: pointer;
     margin-top: 5%;
+    margin-left: 10%;
   }
 
   .groups{
@@ -626,6 +710,21 @@
     cursor: pointer;
   }
 
+  .group {
+    font-family: 'Orbitron', sans-serif;
+    text-align: left;
+    margin-top: 0%;
+    font-size: 15px;
+  }
+
+  .group-data{
+    font-family: 'Vina Sans', cursive;
+    margin-top: 5%;
+    font-size: clamp(15px, 3vw, 25px);
+    color:#66FCF1;
+    margin-left: 10%;
+  }
+
   .unread{
     font-size: 15px;
   }
@@ -634,14 +733,30 @@
     font-family: 'Orbitron', sans-serif;
     text-align: left;
     margin-top: 0%;
+    font-size: clamp(10px, 3vw, 15px);
+    margin-left: 10%;
+  }
+
+  
+  .event{
+    font-family: 'Orbitron', sans-serif;
+    text-align: left;
+    margin-top: 0%;
+    font-size: clamp(10px, 3vw, 15px);
+  }
+
+  .user-follow{
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+    margin-top: 0%;
+    font-size: clamp(10px, 3vw, 15px);
   }
 
   .users{
-    margin-left: 30%;
+    margin-left: 10%;
   }
 
   .request{
-    margin-left: 30%;
     margin-bottom: 1%;
   }
 
@@ -653,7 +768,8 @@
     margin-top: 5%;
     font-family: 'Orbitron', sans-serif;
     display: inline-block;
-    width: 100%;
+    width: 90%;
+    margin-left: 10%;
   }
 
   .chatbox{
@@ -666,7 +782,7 @@
   .chat-messages {
     max-height: 150px;
     overflow: auto;
-    word-break: break-all;
+    word-break: normal;
     border: 1px solid #ccc;
     max-width: 100%;
   }

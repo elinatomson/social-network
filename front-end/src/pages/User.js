@@ -110,9 +110,9 @@ function User() {
                         <div className="following">Following</div>
                           <div id="error" className="alert"></div>
                           {userData.following === null ? (
-                            <p className="user">No users.</p>
+                            <p className="user-follow">No users.</p>
                           ) : (
-                            <div className="user">
+                            <div className="user-follow">
                               {userData.following.map((user) => (
                                 <div key={user.user_id}>
                                   <Link className="link" to={`/user/${user.user_id}`}>
@@ -127,9 +127,9 @@ function User() {
                         <div className="following">Followers</div>
                           <div id="error" className="alert"></div>
                           {userData.followers === null ? (
-                            <p className="user">No users.</p>
+                            <p className="user-follow">No users.</p>
                           ) : (
-                            <div className="user">
+                            <div className="user-follow">
                               {userData.followers.map((user) => (
                                 <div key={user.user_id}>
                                   <Link className="link" to={`/user/${user.user_id}`}>

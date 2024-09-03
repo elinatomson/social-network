@@ -12,7 +12,7 @@ import (
 var dbPath = "./database/database.db"
 
 func openDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dbPath)
+	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (app *application) applyMigrations() error {
 	}
 
 	// Create a new migration instance
-	m, err := migrate.NewWithDatabaseInstance("file://./database/migrations", "sqlite3", driver)
+	m, err := migrate.NewWithDatabaseInstance("file://./database/migrations", "sqlite", driver)
 	if err != nil {
 		return err
 	}

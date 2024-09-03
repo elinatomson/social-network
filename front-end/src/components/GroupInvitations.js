@@ -86,12 +86,12 @@ function GroupInvitations() {
 
   return (
     <div>
-        {groupInvitations.length > 0 && <div className="following">Group invitations:</div>}
+        {groupInvitations.length > 0 && <div className="group-data">Group invitations:</div>}
         <div id="error" className="alert"></div>
         <div className="user">
         {groupInvitations.map((user, index) => (
             <div className="requests" key={index}>
-                <div className="container">
+                <div className="request-container">
                 <div className="left-container2">
                     Group:&nbsp;
                     <Link className="link" to={`/group/${user.group_id}`}>
@@ -100,7 +100,7 @@ function GroupInvitations() {
                     <br/>
                 </div>
                 <div className="right-container1">
-                    <div className="container">
+                    <div className="accept-container">
                     <div className="left-container2">
                         <button className="accept-button" onClick={() => handleAccept(user.group_id, user.invited_user.user_id)}>
                           Accept

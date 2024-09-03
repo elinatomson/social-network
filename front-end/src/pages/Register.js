@@ -149,8 +149,8 @@ function Register () {
                       {errors.includes("date_of_birth") && (
                         <p className="alert">Please select a date of birth.</p>
                       )}
-                    <label htmlFor="avatar">Avatar/Image (Optional)</label>
-                    <input onChange={(e) => setAvatar(e.target.files[0])} type="file" accept="image/*" id="avatar" name="avatar" />
+                    <label htmlFor="avatar">Avatar/Image(Optional)</label>
+                    <input onChange={(e) => setAvatar(e.target.files[0])} type="file" accept="image/*" id="avatar" name="avatar"/>
                     <label htmlFor="nickname">Nickname (Optional)</label>
                     <input value={nickname} onChange={(e) => setNickname(e.target.value)} type="text" placeholder="Nickname" id="nickname" name="nickname"/>
                     {errors.includes("nickname") && (
@@ -162,8 +162,10 @@ function Register () {
                         <p className="alert">About Me too long (max 100 characters).</p>
                       )}
                     <div id="error" className="alert"></div>
-                    <button className="button" type="submit">Register</button>
-                    <Link className="button" to="/" type="submit">Cancel</Link>
+                    <div className="button-container">
+                      <button className="button" type="submit">Register</button>
+                      <Link className="button" to="/" type="submit">Cancel</Link> 
+                    </div>
                 </form>
                 <div>
                     <button className="link-btn" onClick={() => navigate("/login")}> Already have an account? Click here to log in!</button>

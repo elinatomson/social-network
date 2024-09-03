@@ -1,33 +1,34 @@
 # social-network
 
+This project has been made according to the task described [here](https://github.com/01-edu/public/tree/master/subjects/social-network).
+
 ## Project Description
 This is a social network page containing following features:
+- Authentication
 - Profile
 - Followers
 - Posts
+- Comments
 - Groups
 - Events
 - Notifications
 - Chats
 
 In the project I have used:
-- React for the frontend
-- Golang for the backend
-- Docker
-- Sqlite3
+- HTML, CSS, Javascript and React for the frontend;
+- Golang for the backend;
+- Sqlite as a database;
+- WebSocket for real-time communication;
+- Docker for containerization.
 
 ## How to use
-- You should have Docker installed. 
+- You should have Docker installed. If you don't have, install [Docker](https://docs.docker.com/get-started/get-docker/)
 - To build images and run the containers type in your terminal: docker compose up
-- Then open localhost:3000 in your browser to visit the page.
+- Then open http://localhost:8080 in your browser.
 
-## For auditing
-The audit questions are [here](https://github.com/01-edu/public/tree/master/subjects/social-network/audit)
-According to the audit questions you should register your own user, but one premade user as well if you need it:
+You can register totally new Social Network users or you can use excisting one:
 - email: someone@hotmail.com
 - Password: Tere1
 
 ## Author
-- [@elinat](https://01.kood.tech/git/elinat)
-
-As the audit questions may be little bit confusing, please do not hesitate to contact me if you have any questions while testing the page. 
+- [@elinat](https://github.com/elinatomson)

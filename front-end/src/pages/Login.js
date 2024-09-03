@@ -86,8 +86,10 @@ function Login () {
                         <p className="alert">Please fill in the password.</p>
                       )}
                     <div id="error" className="alert"></div>
-                    <button className="button" type="submit">Log In</button>
-                    <Link className="button" to="/" type="submit">Cancel</Link>
+                    <div className="button-container">
+                      <button className="button" type="submit">Log In</button>
+                      <Link className="button" to="/" type="submit">Cancel</Link> 
+                    </div>
                 </form>
                 <div>
                     <button className="link-btn" onClick={() => navigate("/register")}> Dont have an account? Click here to register!</button>

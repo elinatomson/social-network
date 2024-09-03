@@ -27,9 +27,9 @@ function Followers() {
       <div className="following">Followers</div>
       <div id="error" className="alert"></div>
       {followersUsers.length === 0 ? (
-        <p className="user">No users.</p>
+        <p className="user-follow">No users.</p>
       ) : (
-        <div className="user">
+        <div className="user-follow">
           {followersUsers.map((user) => (
             <div key={user.user_id}>
               <Link className="link" to={`/user/${user.user_id}`}>

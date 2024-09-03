@@ -83,19 +83,19 @@ function FollowRequests() {
 
   return (
     <div>
-        {followRequests.length > 0 && <div className="following">Follow requests:</div>}
+        {followRequests.length > 0 && <div className="group-data">Follow requests:</div>}
         <div id="error" className="alert"></div>
         <div className="user">
         {followRequests.map((user) => (
           <div className="requests" key={user.user_id}>
-            <div className="container">
+            <div className="request-container">
               <div className="left-container2">
               <Link className="link" to={`/user/${user.user_id}`}>
               {user.first_name} {user.last_name}
               </Link>
               </div>
               <div className="right-container1">
-                <div className="container">
+                <div className="accept-container">
                   <div className="left-container2">
                     <button className="accept-button" onClick={() => handleAccept(user.user_id, user.following_id)}>
                       Accept

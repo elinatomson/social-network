@@ -28,9 +28,9 @@ function Groups() {
             <div>
                 <div id="error" className="alert"></div>
                 {groups.length === 0 ? (
-                    <p className="user">No groups.</p>
+                    <p className="group">No groups.</p>
                 ) : (
-                    <div className="user">
+                    <div className="group">
                         {groups.map((group) => (
                             <div key={group.group_id}>
                                 <Link className="link-btn" to={`/group/${group.group_id}`}>

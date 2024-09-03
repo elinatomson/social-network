@@ -131,6 +131,7 @@ function CreateGroup() {
                             <div key={result.user_id} className="search-result-item">
                                 <label htmlFor="selected_user_id"></label>
                                 <input
+                                    class="checkbox"
                                     type="checkbox"
                                     name="selected_user_id"
                                     value={result.user_id}

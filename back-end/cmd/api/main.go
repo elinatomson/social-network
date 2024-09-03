@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"social-network/database/sqlite"
 
-	_ "github.com/mattn/go-sqlite3"
 )
 
 const port = 8080

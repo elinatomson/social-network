@@ -70,14 +70,14 @@ function Group() {
               <div className="container">
                 <div className="left-container">
                   {isMember && (
-                    <div className="users">
-                      <div className="following">Group creator</div>
+                    <div>
+                      <div className="group-data">Group creator</div>
                       <div className="user">
                         <Link className="link" to={`/user/${groupData.group.user_id}`}>
                           {groupData.group.first_name} {groupData.group.last_name}
                         </Link>
                       </div>
-                      <div className="following">Group members</div>
+                      <div className="group-data">Group members</div>
                       {groupData.userdata === null ? (
                         <p className="user">No members.</p>
                       ) : (
@@ -126,8 +126,8 @@ function Group() {
                 <div className="right-container">
                   {isMember && (
                       <div >
-                        <div className="following">Upcoming events</div>
-                        <div className="user">
+                        <div className="group-list">Upcoming events</div>
+                        <div className="event">
                           <GroupEvents groupId={parseInt(groupId)} />
                         </div>
                       </div>

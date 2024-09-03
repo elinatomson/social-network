@@ -118,8 +118,8 @@ function Event() {
                 <div id="error" className="alert"></div>
                 <div className="container">
                     <div className="left-container">
-                        <div className="users">
-                            <div className="following">Event creator</div>
+                        <div>
+                            <div className="group-data">Event creator</div>
                             {eventData.event ? (
                                 <div className="user">
                                     <Link className="link" to={`/user/${eventData.event.user_id}`}>
@@ -127,7 +127,7 @@ function Event() {
                                     </Link>
                                 </div>
                             ) : null}
-                            <div className="following">Going</div>
+                            <div className="group-data">Going</div>
                             {eventData.participants ? (
                                 <div className="user">
                                     {eventData.participants.map((participant) => (
@@ -141,7 +141,7 @@ function Event() {
                                     ))}
                                 </div>                       
                             ) : null}
-                            <div className="following">Not Going</div>
+                            <div className="group-data">Not Going</div>
                             {eventData.participants ? (
                                 <div className="user">
                                     {eventData.participants.map((participant) => (
